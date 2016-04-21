@@ -38,11 +38,11 @@ def ota():
     print "Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware, have_version, want_version, device)
 
     # h-sensor/h-sensor-1.0.3.bin
-    binary = "%s/%s-%s.bin" % (firmware, firmware, want_version)
+    binary = "%s/%s/%s-%s.bin" % (firmware_root, firmware, firmware, want_version)
 
     if os.path.exists(binary):
         print "Return OTA firmware %s" % (binary)
-        return static_file(binary, root=firmware_root)
+        return static_file(binary, root='.')
 
     print "%s not found; returning 403" % binary
     return HTTPResponse(status=403, body="Firmware not found")

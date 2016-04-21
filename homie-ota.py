@@ -2,9 +2,11 @@
 
 # wget http://bottlepy.org/bottle.py
 # ... or ... pip install bottle
-from bottle import get, request, run, static_file
+from bottle import get, request, run, static_file, HTTPResponse
 import StringIO
-import json
+import os
+
+firmware_root = '.'
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
 # X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
@@ -27,8 +29,22 @@ def ota():
     for k in headers:
         print k, '=', headers[k]
 
-    return static_file('102', root='.')
+    try:
+        device, firmware, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
+    except:
+        print "Can't find X-Esp8266-Version in headers"
+        return HTTPResponse(status=403, body="Not permitted")
 
+    print "Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware, have_version, want_version, device)
 
+    # h-sensor/h-sensor-1.0.3.bin
+    binary = "%s/%s-%s.bin" % (firmware, firmware, want_version)
+
+    if os.path.exists(binary):
+        print "Return OTA firmware %s" % (binary)
+        return static_file(binary, root=firmware_root)
+
+    print "%s not found; returning 403" % binary
+    return HTTPResponse(status=403, body="Firmware not found")
 
 run(host='0.0.0.0', port=9080, debug=True)

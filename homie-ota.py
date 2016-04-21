@@ -29,6 +29,8 @@ def ota():
     for k in headers:
         print k, '=', headers[k]
 
+    # TODO: check free space vs .bin file on disk and refuse
+
     try:
         device, firmware, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
     except:

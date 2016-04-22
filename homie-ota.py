@@ -6,6 +6,7 @@ from bottle import get, request, run, static_file, HTTPResponse
 import StringIO
 import os
 
+#firmware_root = '/mnt/owncloud/ben/files/data/firmware'
 firmware_root = '.'
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
@@ -32,21 +33,24 @@ def ota():
     # TODO: check free space vs .bin file on disk and refuse
 
     try:
-        device, firmware, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
+        device, firmware_name, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
     except:
         print "Can't find X-Esp8266-Version in headers"
         return HTTPResponse(status=403, body="Not permitted")
 
-    print "Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware, have_version, want_version, device)
+    print "Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device)
 
-    # h-sensor/h-sensor-1.0.3.bin
-    binary = "%s/%s/%s-%s.bin" % (firmware_root, firmware, firmware, want_version)
+    # <firmware_root>/<firmware_name>/<firmware_name-x.x.x.bin
+    # e.g. './h-sensor/h-sensor-1.0.3.bin'
+    firmware_path = "%s/%s" % (firmware_root, firmware_name)
+    binary = "%s-%s.bin" % (firmware_name, want_version)
+    binary_path = "%s/%s" % (firmware_path, binary)
 
-    if os.path.exists(binary):
-        print "Return OTA firmware %s" % (binary)
-        return static_file(binary, root='.')
+    if os.path.exists(binary_path):
+        print "Return OTA firmware %s" % (binary_path)
+        return static_file(binary, root=firmware_path)
 
-    print "%s not found; returning 403" % binary
+    print "%s not found; returning 403" % binary_path
     return HTTPResponse(status=403, body="Firmware not found")
 
 run(host='0.0.0.0', port=9080, debug=True)

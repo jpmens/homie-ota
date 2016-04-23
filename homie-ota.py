@@ -42,6 +42,14 @@ logging.debug("DEBUG MODE")
 logging.debug("INIFILE = %s" % INIFILE)
 logging.debug("LOGFILE = %s" % LOGFILE)
 
+@get('/')
+def index():
+    return """Homie OTA server running.
+    OTA endpoint is: http://{host}:{port}/{endpoint}
+    Firmware root is {fwroot}\n""".format(host=OTA_HOST,
+            port=OTA_PORT, endpoint=OTA_ENDPOINT, fwroot=OTA_FIRMWARE_ROOT)
+
+
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
 # X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
 # X-Esp8266-Free-Space = 684032

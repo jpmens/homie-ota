@@ -1,12 +1,14 @@
 [global]
-DEBUG             = True
+DEBUG			= True
 
-OTA_HOST          = web01.home
-OTA_PORT          = 9080
-OTA_ENDPOINT      = homie-ota
-OTA_FIRMWARE_ROOT = /mnt/owncloud/ben/files/data/firmware
+OTA_HOST		= web01.home
+OTA_PORT		= 9080
+OTA_ENDPOINT		= homie-ota
+OTA_FIRMWARE_ROOT	= .
 
 [mqtt]
-MQTT_HOST	= localhost
-MQTT_PORT	= 1883
-SENSOR_PREFIX	= sensors/homie
+MQTT_HOST		= localhost
+MQTT_PORT		= 1883
+MQTT_USERNAME		= John
+MQTT_PASSWORD		= secret
+MQTT_SENSOR_PREFIX	= sensors/homie

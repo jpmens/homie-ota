@@ -10,13 +10,13 @@ from bottle import get, request, run, static_file, HTTPResponse, template
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
+import sys
 import logging
 import ConfigParser
 import atexit
 from persist import PersistentDict
 import json
 import fileinput
-
 
 
 # Script name (without extension) used for config/logfile names
@@ -30,6 +30,7 @@ config.read(INIFILE)
 
 # Use ConfigParser to pick out the settings
 DEBUG = config.getboolean("global", "DEBUG")
+
 OTA_HOST = config.get("global", "OTA_HOST")
 OTA_PORT = config.getint("global", "OTA_PORT")
 OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
@@ -37,7 +38,10 @@ OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
 
 MQTT_HOST = config.get("mqtt", "MQTT_HOST")
 MQTT_PORT = config.getint("mqtt", "MQTT_PORT")
-SENSOR_PREFIX = config.get("mqtt", "SENSOR_PREFIX")
+MQTT_USERNAME = config.get("mqtt", "MQTT_USERNAME")
+MQTT_PASSWORD = config.get("mqtt", "MQTT_PASSWORD")
+MQTT_SENSOR_PREFIX = config.get("mqtt", "MQTT_SENSOR_PREFIX")
+
 
 # Initialise logging
 LOGFORMAT = '%(asctime)-15s %(levelname)-5s %(message)s'
@@ -61,7 +65,7 @@ db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', form
 
 def exitus():
     db.close()
-    print "CIAO"
+    logging.debug("CIAO")
 
 
 @get('/')
@@ -81,9 +85,9 @@ def index():
 
     return text
 
+
 @get('/inventory')
 def inventory():
-
     return template('inventory', db=db)
 
 
@@ -134,14 +138,13 @@ def ota():
 
 def on_connect(mosq, userdata, rc):
     for suffix in [ '$localip', '$signal', '$uptime', '$name', '$online', '$fwname', '$fwversion' ]:
-        mqttc.subscribe("%s/+/%s" % (SENSOR_PREFIX, suffix), 0)
-
+        mqttc.subscribe("%s/+/%s" % (MQTT_SENSOR_PREFIX, suffix), 0)
 
 def on_message(mosq, userdata, msg):
-    print "%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload))
+    logging.debug("%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
 
     t = str(msg.topic)
-    t = t[len(SENSOR_PREFIX) + 1:]      # remove SENSOR_PREFIX/ from begining of topic
+    t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
     
     device, key = t.split('/')
     key = key[1:]                       # remove '$'
@@ -151,7 +154,6 @@ def on_message(mosq, userdata, msg):
     db[device][key] = str(msg.payload)
 
 def on_disconnect(mosq, userdata, rc):
-
     reasons = {
        '0' : 'Connection Accepted',
        '1' : 'Connection Refused: unacceptable protocol version',
@@ -161,23 +163,28 @@ def on_disconnect(mosq, userdata, rc):
        '5' : 'Connection Refused: not authorized',
     }
     reason = reasons.get(rc, "code=%s" % rc)
-    print "Disconnected: ", reason
+    logging.debug("Disconnected: ", reason)
 
 def on_log(mosq, userdata, level, string):
-    print(string)
+    logging.debug(string)
 
 if __name__ == '__main__':
 
     mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userdata=None, protocol=paho.MQTTv311)
-    mqttc.on_message = on_message
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect
-    # Uncomment to enable debug messages
-    #mqttc.on_log = on_log
+    mqttc.on_message = on_message
+    mqttc.on_log = on_log
 
-    # mqttc.username_pw_set('john', 'secret')
+    if MQTT_USERNAME:
+        mqttc.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
-    mqttc.connect("localhost", MQTT_PORT, 60)
+    logging.debug("Attempting connection to MQTT broker at %s:%d..." % (MQTT_HOST, MQTT_PORT))
+    try:
+        mqttc.connect(MQTT_HOST, MQTT_PORT, 60)
+    except Exception, e:
+        logging.error("Cannot connect to MQTT broker at %s:%d: %s" % (MQTT_HOST, MQTT_PORT, str(e)))
+        sys.exit(2)
 
     mqttc.loop_start()
 

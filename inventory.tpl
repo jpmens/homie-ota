@@ -2,14 +2,18 @@
 <table border="1">
 <thead>
 <tr>
-	<td>Device</td><td>Online</td><td>IP</td><td>Uptime</td><td>Signal</td><td>fwname</td><td>fwversion</td><td>name</td>
+  <td>device</td><td>online</td><td>ipaddress</td><td>uptime</td><td>signal</td><td>fwname</td><td>fwversion</td><td>name</td>
 </tr>
 </thead>
 %for device in db:
 <tr>
 <td>{{device}}</td>
 %for item in ['online', 'localip', 'uptime', 'signal', 'fwname', 'fwversion', 'name']:
-  <td>{{ db[device][item] }}</td>
+  %if item in db[device]:
+    <td>{{db[device][item]}}</td>
+  %else:
+    <td></td>
+  %end
 %end
 </tr>
 %end

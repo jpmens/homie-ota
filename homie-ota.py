@@ -6,7 +6,7 @@ __copyright__ = 'Copyright 2016 Jan-Piet Mens'
 
 # wget http://bottlepy.org/bottle.py
 # ... or ... pip install bottle
-from bottle import get, request, run, static_file, HTTPResponse
+from bottle import get, request, run, static_file, HTTPResponse, template
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
@@ -79,12 +79,12 @@ def index():
                 continue
             text = text + "\t\t%s %s\n" % (len(path) * '---', file)
 
-    text = text + "\n\n"
-    text = text + "Inventory"
-
-    for device in db:
-        text = text + db[device]['name']
     return text
+
+@get('/inventory')
+def inventory():
+
+    return template('inventory', db=db)
 
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
@@ -133,7 +133,7 @@ def ota():
 
 
 def on_connect(mosq, userdata, rc):
-    for suffix in [ '$signal', '$uptime', '$name', '$online', '$fwname', '$fwversion' ]:
+    for suffix in [ '$localip', '$signal', '$uptime', '$name', '$online', '$fwname', '$fwversion' ]:
         mqttc.subscribe("%s/+/%s" % (SENSOR_PREFIX, suffix), 0)
 
 

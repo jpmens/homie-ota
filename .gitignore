@@ -1,3 +1,4 @@
 *.ini
 *.pyc
 .DS_Store
+*.log

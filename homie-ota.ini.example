@@ -1,0 +1,7 @@
+[global]
+DEBUG             = True
+
+OTA_HOST          = web01.home
+OTA_PORT          = 9080
+OTA_ENDPOINT      = homie-ota
+OTA_FIRMWARE_ROOT = /mnt/owncloud/ben/files/data/firmware

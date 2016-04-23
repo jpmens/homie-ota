@@ -5,16 +5,42 @@
 from bottle import get, request, run, static_file, HTTPResponse
 import StringIO
 import os
+import logging
+import ConfigParser
 
+# Script name (without extension) used for config/logfile names
+APPNAME = os.path.splitext(os.path.basename(__file__))[0]
+INIFILE = os.getenv('INIFILE', APPNAME + '.ini')
+LOGFILE = os.getenv('LOGFILE', APPNAME + '.log')
 
-# configuration
-# TODO: move to ini file
-host = '0.0.0.0'
-port = 9080
-verbose = True
-endpoint = '/ota'
-firmware_root = '.'
+# Read the config file
+config = ConfigParser.RawConfigParser()
+config.read(INIFILE)
 
+# Use ConfigParser to pick out the settings
+DEBUG = config.getboolean("global", "DEBUG")
+OTA_HOST = config.get("global", "OTA_HOST")
+OTA_PORT = config.getint("global", "OTA_PORT")
+OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
+OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
+
+# Initialise logging
+LOGFORMAT = '%(asctime)-15s %(levelname)-5s %(message)s'
+
+if DEBUG:
+    logging.basicConfig(filename=LOGFILE,
+                        level=logging.DEBUG,
+                        format=LOGFORMAT)
+else:
+    logging.basicConfig(filename=LOGFILE,
+                        level=logging.INFO,
+                        format=LOGFORMAT)
+
+logging.info("Starting " + APPNAME)
+logging.info("INFO MODE")
+logging.debug("DEBUG MODE")
+logging.debug("INIFILE = %s" % INIFILE)
+logging.debug("LOGFILE = %s" % LOGFILE)
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
 # X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
@@ -30,38 +56,35 @@ firmware_root = '.'
 # X-Esp8266-Version = cf3a07e0=h-sensor=1.0.1=1.0.2
 # Content-Type = text/plain
 
-@get(endpoint)
+@get(OTA_ENDPOINT)
 def ota():
 
     headers = request.headers
     for k in headers:
-        debug(k + ' = ' + headers[k])
+        logging.debug(k + ' = ' + headers[k])
 
     # TODO: check free space vs .bin file on disk and refuse
 
     try:
         device, firmware_name, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
     except:
-        debug("Can't find X-Esp8266-Version in headers")
+        logging.warn("Can't find X-Esp8266-Version in headers; returning 403")
         return HTTPResponse(status=403, body="Not permitted")
 
-    debug("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
+    logging.info("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
 
     # <firmware_root>/<firmware_name>/<firmware_name-x.x.x.bin
     # e.g. './h-sensor/h-sensor-1.0.3.bin'
-    firmware_path = "%s/%s" % (firmware_root, firmware_name)
+    firmware_path = "%s/%s" % (OTA_FIRMWARE_ROOT, firmware_name)
     binary = "%s-%s.bin" % (firmware_name, want_version)
     binary_path = "%s/%s" % (firmware_path, binary)
 
-    if os.path.exists(binary_path):
-        debug("Return OTA firmware %s" % (binary_path))
-        return static_file(binary, root=firmware_path)
+    if not os.path.exists(binary_path):
+        logging.warn("%s not found; returning 403" % (binary_path))
+        return HTTPResponse(status=403, body="Firmware not found")
 
-    debug("%s not found; returning 403" % (binary_path))
-    return HTTPResponse(status=403, body="Firmware not found")
+    logging.info("Return OTA firmware %s" % (binary_path))
+    return static_file(binary, root=firmware_path)
 
-def debug(message):
-    if verbose:
-        print message
 
-run(host=host, port=port, debug=debug)
+run(host=OTA_HOST, port=OTA_PORT, debug=DEBUG)

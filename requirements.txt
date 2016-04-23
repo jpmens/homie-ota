@@ -1,0 +1,3 @@
+# apt-get install python-dev
+paho-mqtt
+bottle

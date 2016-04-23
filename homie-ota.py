@@ -44,10 +44,20 @@ logging.debug("LOGFILE = %s" % LOGFILE)
 
 @get('/')
 def index():
-    return """Homie OTA server running.
+    text =  """Homie OTA server running.
     OTA endpoint is: http://{host}:{port}/{endpoint}
     Firmware root is {fwroot}\n""".format(host=OTA_HOST,
             port=OTA_PORT, endpoint=OTA_ENDPOINT, fwroot=OTA_FIRMWARE_ROOT)
+
+    for root, dirs, files in os.walk(OTA_FIRMWARE_ROOT):
+        path = root.split('/')
+        text = text + "\t%s %s\n" % ((len(path) - 1) * '--', os.path.basename(root))
+        for file in files:
+            if file[0] == '.':
+                continue
+            text = text + "\t\t%s %s\n" % (len(path) * '---', file)
+
+    return text
 
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07

@@ -118,6 +118,11 @@ def firmware():
 def inventory():
     return template('templates/inventory', db=db)
 
+@get('/log')
+def showlog():
+    logdata = open(LOGFILE, "r").read()
+    return template('templates/log', data=logdata)
+
 @route('/upload', method='POST')
 def upload():
     firmware = request.forms.get('firmware')

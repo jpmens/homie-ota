@@ -1,6 +1,9 @@
 <h2>Homie device inventory</h2>
 
-<a href="/firmware">Homie device firmware</a>
+<ul>
+<li><a href="/firmware">Homie device firmware</a></li>
+<li><a href="/log">Show log</a></li>
+</ul>
 
 <h3>Registered devices</h3>
 <table border="1">

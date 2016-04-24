@@ -72,7 +72,6 @@ logging.info("Starting " + APPNAME)
 logging.info("INFO MODE")
 logging.debug("DEBUG MODE")
 logging.debug("INIFILE = %s" % INIFILE)
-logging.debug("LOGFILE = %s" % LOGFILE)
 
 # MQTT client
 mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userdata=None, protocol=paho.MQTTv311)
@@ -85,8 +84,14 @@ def exitus():
     db.close()
     logging.debug("CIAO")
 
+def ota_initialize(device, version):
+    topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
+    payload = version
 
-@get('/')
+    (res, mid) =  mqttc.publish(topic, payload, qos=1, retain=False)
+    logging.info("OTA request sent to device %s for version %s" % (device, version))
+
+@get('/blurb')
 def index():
     text =  """Homie OTA server running.
     OTA endpoint is: http://{host}:{port}/{endpoint}
@@ -106,9 +111,10 @@ def index():
 @get('/firmware')
 def firmware():
     fw = scan_firmware()
+    print json.dumps(fw, indent=4)
     return template('templates/firmware', fw=fw)
 
-@get('/inventory')
+@get('/')
 def inventory():
     return template('templates/inventory', db=db)
 
@@ -161,6 +167,10 @@ def scan_firmware():
             fw[firmware_file]['firmware'] = firmware
             fw[firmware_file]['filename'] = filename
             fw[firmware_file]['version'] = version
+
+            stat = os.stat(firmware_file)
+            fw[firmware_file]['size'] = stat.st_size
+
     return fw
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07

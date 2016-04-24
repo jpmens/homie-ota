@@ -3,3 +3,4 @@
 2. add validation on input fields
 3. add file size v device size validation
 4. provide log page
+5. show uptime in human-readable form 

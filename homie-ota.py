@@ -115,6 +115,17 @@ def upload():
     upload.save(firmware_file)
     return 'Uploaded OK'
 
+@route('/update', method='POST')
+def update():
+    device = request.forms.get('device')
+    version = request.forms.get('version')
+
+    logging.debug("OTA updated requested for %s (v%s)" % (device, version))
+    topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
+    mqttc.publish(topic, payload=version)
+
+    return 'OTA updated scheduled'
+
 def scan_firmware():
     fw = {}
     for firmware in os.listdir(OTA_FIRMWARE_ROOT):

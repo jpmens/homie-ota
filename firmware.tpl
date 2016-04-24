@@ -1,4 +1,7 @@
 <h2>Homie device firmware</h2>
+
+<a href="/inventory">Homie device inventory</a>
+
 <h3>Existing Firmware</h3>
 <table border="1">
 <thead>
@@ -30,3 +33,4 @@
     <tr><td>Upload:</td><td><input type="submit" value="Upload"></td></tr>
   </table>
 </form>
+

@@ -14,13 +14,16 @@
 <table border="1">
 <thead>
 <tr>
-  <td>device</td><td>name</td><td>online</td><td>ipaddress</td><td>uptime</td><td>signal</td><td>fwname</td><td>fwversion</td>
+  <th>online</th><th>device</th><th>ipaddress</th><th>uptime</th><th>signal</th><th>fwname</th><th>fwversion</th><th>name</th>
 </tr>
 </thead>
 %for device in sorted(db):
 <tr>
+<td>
+    <img src="/{{db[device].get('online', 'false')}}.png" alt="{{db[device].get('online', 'false')}}" />
+    </td>
 <td>{{device}}</td>
-%for item in ['name', 'online', 'localip', 'uptime', 'signal', 'fwname', 'fwversion']:
+%for item in ['localip', 'uptime', 'signal', 'fwname', 'fwversion', 'name']:
   %if item in db[device]:
     <td>{{db[device][item]}}</td>
   %else:

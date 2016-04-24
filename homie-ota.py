@@ -116,6 +116,9 @@ def inventory():
 def stylesheets(filename):
     return static_file(filename, root='static/css')
 
+@get('/<filename:re:.*\.png>')
+def png(filename):
+    return static_file(filename, root='static/img')
 
 @get('/log')
 def showlog():

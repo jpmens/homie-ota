@@ -1,5 +1,5 @@
 body, table {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: Gill Sans, Arial, Helvetica, sans-serif;
 	font-size: 100%;
 	margin-left: 1em;
 }
@@ -8,9 +8,19 @@ table {
 	margin-left: 3em;
 }
 
+th {
+	text-align: left;
+	padding: 4px;
+}
+
+td {
+	font-family: Courier, monospace;
+	padding: 4px;
+}
+
 H1
 {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: Gill Sans, Arial, Helvetica, sans-serif;
 	font-size: 20pt;
 	color: #AAAAAA;
 	font-weight: bold;
@@ -24,7 +34,7 @@ H2
 	margin-left: 1em;
 	font-size: 16pt;
 	font-weight: bold;
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: Gill Sans, Arial, Helvetica, sans-serif;
 	color: #BBBBBB;
 }
 
@@ -34,7 +44,7 @@ H3
 	margin-left: 2em;
 	font-size: 13pt;
 	font-weight: bold;
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: Gill Sans, Arial, Helvetica, sans-serif;
 	color: #BBBBBB;
 }
 

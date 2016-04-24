@@ -30,7 +30,7 @@
     <tr><td>Firmware:</td><td><input type="text" name="firmware"></td></tr>
     <tr><td>Version (x.x.x):</td><td><input type="text" name="version"></td></tr>
     <tr><td>Select File:</td><td><input type="file" name="upload"></td></tr>
-    <tr><td>Upload:</td><td><input type="submit" value="Upload"></td></tr>
+    <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>
 

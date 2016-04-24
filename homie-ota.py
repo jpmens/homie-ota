@@ -174,12 +174,12 @@ def upload():
         regex_version_result = regex_version.search(firmware_binary)
 
         if not regex_name_result or not regex_version_result:
-            return "Not a valid firmware in", filename
+            resp = "No valid firmware in %s" % filename
+            logging.info(resp)
+            return resp
 
         fwname = regex_name_result.group(1)
         fwversion = regex_version_result.group(1)
-
-        logging.debug("Firmware upload for %s v%s -> %s" % (fwname, fwversion, upload.filename))
 
         firmware_path = os.path.join(OTA_FIRMWARE_ROOT, fwname)
         fwfile = fwname + '-' + fwversion + '.bin'
@@ -188,11 +188,17 @@ def upload():
         if not os.path.exists(firmware_path):
             os.mkdir(firmware_path)
 
-        f = open(firmware_file, "wb")
-        f.write(firmware_binary)
-        f.close()
+        try:
+            f = open(firmware_file, "wb")
+            f.write(firmware_binary)
+            f.close()
+        except Exception, e:
+            resp = "Cannot write %s: %s" % (firmware_file, str(e))
+            logging.info(resp)
+            return resp
 
         resp = "Firmware from %s uploaded as %s" % (filename, firmware_file)
+        logging.info(resp)
         return resp
 
     return "File is missing"

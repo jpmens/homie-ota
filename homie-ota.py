@@ -93,11 +93,11 @@ def index():
 @get('/firmware')
 def firmware():
     fw = scan_firmware()
-    return template('firmware', fw=fw)
+    return template('templates/firmware', fw=fw)
 
 @get('/inventory')
 def inventory():
-    return template('inventory', db=db)
+    return template('templates/inventory', db=db)
 
 @route('/upload', method='POST')
 def upload():

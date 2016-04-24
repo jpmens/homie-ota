@@ -23,8 +23,11 @@
 
 <h3>Firmware upload</h3>
 <form action="/upload" method="post" enctype="multipart/form-data">
-  Firmware: <input type="text" name="firmware"><br/>
-  <br/>Version (x.x.x): <input type="text" name="version"><br/>
-  <br/>Select File: <input type="file" name="upload"><br/>
-  <br/><input type="submit" value="Upload" />
+  Firmware: <input type="text" name="firmware">
+  <br/><br/>
+  Version (x.x.x): <input type="text" name="version">
+  <br/><br/>
+  Select File: <input type="file" name="upload">
+  <br/><br/>
+  <input type="submit" value="Upload" />
 </form>

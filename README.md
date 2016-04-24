@@ -26,9 +26,17 @@ Configure your [Homie] devices to actually use homie-ota by providing the approp
 ![ESP8266 Arduino](assets/jmbp-2686.png)
 
 
-## Obtaining the binary of the sketch
+## Preparing the firmware
 
+In order to use the Autodetectable Binary Upload™, your Homie sketch should contain a magic expression in it as shown [here](https://github.com/jpmens/homie-ota/issues/1). When you're ready, compile the binary to upload it.
 Under the `Sketch` menu, select `Export compiled Binary`; the binary `.bin` will be placed in the sketch's directory.
+
+The firmware file itself can be named however you wish, upon upload it is stored into the correct firmware directory and you are informed of where it's been placed:
+
+```
+Firmware from ed-relay.ino.d1_mini.bin uploaded as firmwares/dual-relay/dual-relay-1.0.2.bin
+```
+
 
   [Homie]: https://github.com/marvinroger/homie-esp8266
   [Bottle]: http://bottlepy.org/docs/dev/index.html

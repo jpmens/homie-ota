@@ -18,6 +18,7 @@ from persist import PersistentDict
 import json
 import fileinput
 import time
+import re
 
 
 # Script name (without extension) used for config/logfile names
@@ -154,21 +155,47 @@ def showlog():
 
 @route('/upload', method='POST')
 def upload():
-    firmware = request.forms.get('firmware')
-    version = request.forms.get('version')
-    upload = request.files.get('upload')
+    '''Accept an uploaded, compiled binary sketch and obtain the firmware's
+       name and version from the magic described in
+       https://github.com/jpmens/homie-ota/issues/1
+       Store the binary firmware into a corresponding subdirectory in firmwares/
+       '''
 
-    logging.debug("Firmware upload for %s v%s -> %s" % (firmware, version, upload.filename))
+    upload = request.files.upload
 
-    firmware_path = os.path.join(OTA_FIRMWARE_ROOT, firmware)
-    firmware_binary = firmware + '-' + version + '.bin'
-    firmware_file = os.path.join(firmware_path, firmware_binary)
+    if upload and upload.file:
+        firmware_binary = upload.file.read()
+        filename = upload.filename
 
-    if not os.path.exists(firmware_path):
-        os.mkdir(firmware_path)
+        regex_name = re.compile(b"\xbf\x84\xe4\x13\x54(.+)\x93\x44\x6b\xa7\x75")
+        regex_version = re.compile(b"\x6a\x3f\x3e\x0e\xe1(.+)\xb0\x30\x48\xd4\x1a")
 
-    upload.save(firmware_file)
-    return 'Firmware uploaded OK'
+        regex_name_result = regex_name.search(firmware_binary)
+        regex_version_result = regex_version.search(firmware_binary)
+
+        if not regex_name_result or not regex_version_result:
+            return "Not a valid firmware in", filename
+
+        fwname = regex_name_result.group(1)
+        fwversion = regex_version_result.group(1)
+
+        logging.debug("Firmware upload for %s v%s -> %s" % (fwname, fwversion, upload.filename))
+
+        firmware_path = os.path.join(OTA_FIRMWARE_ROOT, fwname)
+        fwfile = fwname + '-' + fwversion + '.bin'
+        firmware_file = os.path.join(firmware_path, fwfile)
+
+        if not os.path.exists(firmware_path):
+            os.mkdir(firmware_path)
+
+        f = open(firmware_file, "wb")
+        f.write(firmware_binary)
+        f.close()
+
+        resp = "Firmware from %s uploaded as %s" % (filename, firmware_file)
+        return resp
+
+    return "File is missing"
 
 @route('/update', method='POST')
 def update():

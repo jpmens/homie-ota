@@ -35,9 +35,7 @@
 <h3>Firmware upload</h3>
 <form action="/upload" method="post" enctype="multipart/form-data">
   <table border="0">
-    <tr><td>Firmware:</td><td><input type="text" name="firmware"></td></tr>
-    <tr><td>Version (x.x.x):</td><td><input type="text" name="version"></td></tr>
-    <tr><td>Select File:</td><td><input type="file" name="upload"></td></tr>
+    <tr><td>Select autodetectable binary sketch:</td><td><input type="file" name="upload"></td></tr>
     <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>

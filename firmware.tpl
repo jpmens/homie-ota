@@ -19,15 +19,14 @@
 %end
 </table>
 
-<br/>
+<br>
 
 <h3>Firmware upload</h3>
 <form action="/upload" method="post" enctype="multipart/form-data">
-  Firmware: <input type="text" name="firmware">
-  <br/><br/>
-  Version (x.x.x): <input type="text" name="version">
-  <br/><br/>
-  Select File: <input type="file" name="upload">
-  <br/><br/>
-  <input type="submit" value="Upload" />
+  <table border="0">
+    <tr><td>Firmware:</td><td><input type="text" name="firmware"></td></tr>
+    <tr><td>Version (x.x.x):</td><td><input type="text" name="version"></td></tr>
+    <tr><td>Select File:</td><td><input type="file" name="upload"></td></tr>
+    <tr><td>Upload:</td><td><input type="submit" value="Upload"></td></tr>
+  </table>
 </form>

@@ -2,15 +2,14 @@
 <table border="1">
 <thead>
 <tr>
-  <td>firmware</td><td>version</td><td>filename</td>
+  <td>firmware</td><td>filename</td><td>version</td>
 </tr>
 </thead>
-%for firmware in sorted(fw):
+%for path in sorted(fw):
 <tr>
-<td>{{firmware}}</td>
-%for item in ['version', 'filename']:
-  %if item in fw[firmware]:
-    <td>{{fw[firmware][item]}}</td>
+%for item in ['firmware', 'filename', 'version']:
+  %if item in fw[path]:
+    <td>{{fw[path][item]}}</td>
   %else:
     <td></td>
   %end

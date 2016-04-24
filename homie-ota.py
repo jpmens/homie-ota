@@ -105,13 +105,18 @@ def scan_firmware():
         if not os.path.isdir(firmware_path):
             continue
 
-        if firmware not in fw:
-            fw[firmware] = {}
-
         for filename in os.listdir(firmware_path):
+            firmware_file = firmware_path + '/' + filename
+            if not os.path.isfile(firmware_file):
+                continue
+
+            if firmware_file not in fw:
+                fw[firmware_file] = {}
+
             version = filename.lstrip(firmware + '-').rstrip('.bin')
-            fw[firmware]['version'] = version
-            fw[firmware]['filename'] = filename
+            fw[firmware_file]['firmware'] = firmware
+            fw[firmware_file]['filename'] = filename
+            fw[firmware_file]['version'] = version
 
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07

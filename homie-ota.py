@@ -112,6 +112,11 @@ def firmware():
 def inventory():
     return template('templates/inventory', db=db)
 
+@get('/<filename:re:.*\.css>')
+def stylesheets(filename):
+    return static_file(filename, root='static/css')
+
+
 @get('/log')
 def showlog():
     logdata = open(LOGFILE, "r").read()

@@ -1,6 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="styles.css">
+  </head>
+<body>
 <h2>Homie device firmware</h2>
 
-<a href="/">Homie device inventory</a>
+<p>
+[<a href="/">Homie device inventory</a>] [<a href="/log">Logfile</a>]
+</p>
 
 <h3>Existing Firmware</h3>
 <table border="1">
@@ -34,3 +42,5 @@
   </table>
 </form>
 
+</body>
+</html>

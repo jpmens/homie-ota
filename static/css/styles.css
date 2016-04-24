@@ -1,0 +1,68 @@
+body, table {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 100%;
+	margin-left: 1em;
+}
+
+table {
+	margin-left: 3em;
+}
+
+H1
+{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 20pt;
+	color: #AAAAAA;
+	font-weight: bold;
+	padding-bottom: 0.25em;
+	border-bottom: 2px solid #EEEEEE;
+}
+
+H2
+{
+	margin-top: 1em;
+	margin-left: 1em;
+	font-size: 16pt;
+	font-weight: bold;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #BBBBBB;
+}
+
+H3
+{
+	margin-top: 1em;
+	margin-left: 2em;
+	font-size: 13pt;
+	font-weight: bold;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #BBBBBB;
+}
+
+P, tr
+{
+	font-family: verdana, tahoma, arial, helvetica, sans-serif;
+	margin-left: 4em;
+}
+
+LI
+{
+	font-family: verdana, tahoma, arial, helvetica, sans-serif;
+	margin-left: 3em;
+}
+
+PRE
+{
+	margin-left: 6em;
+}
+
+H6
+{
+	margin-top: 3em;
+	padding-top: 0.5em;
+	border-top: 1px solid #EEEEEE;
+	text-align: right;
+	font-size: 8pt;
+	font-weight: bold;
+	font-family: tahoma, arial, helvetica, sans-serif;
+	color: #DDDDDD;
+}

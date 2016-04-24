@@ -82,6 +82,7 @@ db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', form
 
 
 def exitus():
+    db.sync()
     db.close()
     logging.debug("CIAO")
 

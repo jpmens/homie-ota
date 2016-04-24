@@ -61,7 +61,12 @@ logging.debug("DEBUG MODE")
 logging.debug("INIFILE = %s" % INIFILE)
 logging.debug("LOGFILE = %s" % LOGFILE)
 
+# MQTT client
+mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userdata=None, protocol=paho.MQTTv311)
+
+# Persisted inventory store
 db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', format='json')
+fw = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'firmware.json'), 'c', format='json')
 
 def exitus():
     db.close()
@@ -85,10 +90,28 @@ def index():
 
     return text
 
+@get('/firmware')
+def firmware():
+    return template('firmware', fw=fw)
 
 @get('/inventory')
 def inventory():
     return template('inventory', db=db)
+
+
+def scan_firmware():
+    for firmware in os.listdir(OTA_FIRMWARE_ROOT):
+        firmware_path = OTA_FIRMWARE_ROOT + '/' + firmware
+        if not os.path.isdir(firmware_path):
+            continue
+
+        if firmware not in fw:
+            fw[firmware] = {}
+
+        for filename in os.listdir(firmware_path):
+            version = filename.lstrip(firmware + '-').rstrip('.bin')
+            fw[firmware]['version'] = version
+            fw[firmware]['filename'] = filename
 
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
@@ -170,7 +193,8 @@ def on_log(mosq, userdata, level, string):
 
 if __name__ == '__main__':
 
-    mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userdata=None, protocol=paho.MQTTv311)
+    scan_firmware()
+
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect
     mqttc.on_message = on_message

@@ -38,8 +38,21 @@ OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
 
 MQTT_HOST = config.get("mqtt", "MQTT_HOST")
 MQTT_PORT = config.getint("mqtt", "MQTT_PORT")
-MQTT_USERNAME = config.get("mqtt", "MQTT_USERNAME")
-MQTT_PASSWORD = config.get("mqtt", "MQTT_PASSWORD")
+MQTT_USERNAME = None
+MQTT_PASSWORD = None
+MQTT_CAFILE = None
+try:
+    MQTT_USERNAME = config.get("mqtt", "MQTT_USERNAME")
+except:
+    pass
+try:
+    MQTT_PASSWORD = config.get("mqtt", "MQTT_PASSWORD")
+except:
+    pass
+try:
+    MQTT_CAFILE = config.get("mqtt", "MQTT_CAFILE")
+except:
+    pass
 MQTT_SENSOR_PREFIX = config.get("mqtt", "MQTT_SENSOR_PREFIX")
 
 
@@ -230,6 +243,9 @@ if __name__ == '__main__':
     mqttc.on_disconnect = on_disconnect
     mqttc.on_message = on_message
     mqttc.on_log = on_log
+
+    if MQTT_CAFILE:
+        mqttc.tls_set(MQTT_CAFILE)
 
     if MQTT_USERNAME:
         mqttc.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)

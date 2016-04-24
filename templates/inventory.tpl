@@ -2,7 +2,10 @@
 <html>
 <head>
   <link rel="stylesheet" href="styles.css">
-  </head>
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <!-- https://github.com/lastdates/pBar -->
+  <script type="text/javascript" src="jquery.pBar.min.js"></script>
+</head>
 <body>
 <h2>Homie device inventory</h2>
 
@@ -14,7 +17,7 @@
 <table border="1">
 <thead>
 <tr>
-  <th>online</th><th>device</th><th>ipaddress</th><th>uptime</th><th>signal</th><th>fwname</th><th>fwversion</th><th>name</th>
+  <th>online</th><th>signal</th><th>device</th><th>ipaddress</th><th>uptime</th><th>fwname</th><th>fwversion</th><th>name</th>
 </tr>
 </thead>
 %for device in sorted(db):
@@ -22,14 +25,19 @@
 <td>
     <img src="/{{db[device].get('online', 'false')}}.png" alt="{{db[device].get('online', 'false')}}" />
     </td>
+
+<td>
+   <div class="pBar" data-from="0" data-to="{{ db[device]['signal'] }}"></div>
+    </td>
 <td>{{device}}</td>
-%for item in ['localip', 'uptime', 'signal', 'fwname', 'fwversion', 'name']:
+%for item in ['localip', 'human_uptime', 'fwname', 'fwversion', 'name']:
   %if item in db[device]:
     <td>{{db[device][item]}}</td>
   %else:
     <td></td>
   %end
 %end
+
 </tr>
 %end
 </table>

@@ -17,6 +17,7 @@ import atexit
 from persist import PersistentDict
 import json
 import fileinput
+import time
 
 
 # Script name (without extension) used for config/logfile names
@@ -84,6 +85,27 @@ def exitus():
     db.close()
     logging.debug("CIAO")
 
+def uptime(seconds=0):
+    MINUTE = 60
+    HOUR = MINUTE * 60
+    DAY = HOUR * 24
+
+    seconds = int(seconds)
+
+    days    = int( seconds / DAY )
+    hours   = int( ( seconds % DAY ) / HOUR )
+    minutes = int( ( seconds % HOUR ) / MINUTE )
+    seconds = int( seconds % MINUTE )
+
+    string = ""
+    if days > 0:
+        string += str(days) + " " + (days == 1 and "day" or "days" ) + ", "
+
+
+    string = string + "%d:%02d:%02d" % (hours, minutes, seconds)
+
+    return string
+
 
 @get('/blurb')
 def index():
@@ -119,6 +141,10 @@ def stylesheets(filename):
 @get('/<filename:re:.*\.png>')
 def png(filename):
     return static_file(filename, root='static/img')
+
+@get('/<filename:re:.*\.js>')
+def javascript(filename):
+    return static_file(filename, root='static/js')
 
 @get('/log')
 def showlog():
@@ -244,6 +270,9 @@ def on_message(mosq, userdata, msg):
     if device not in db:
         db[device] = {}
     db[device][key] = str(msg.payload)
+
+    if key == 'uptime':
+        db[device]['human_uptime'] = uptime( db[device].get('uptime', 0) )
 
 def on_disconnect(mosq, userdata, rc):
     reasons = {

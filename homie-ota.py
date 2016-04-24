@@ -84,12 +84,6 @@ def exitus():
     db.close()
     logging.debug("CIAO")
 
-def ota_initialize(device, version):
-    topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-    payload = version
-
-    (res, mid) =  mqttc.publish(topic, payload, qos=1, retain=False)
-    logging.info("OTA request sent to device %s for version %s" % (device, version))
 
 @get('/blurb')
 def index():
@@ -150,8 +144,11 @@ def update():
 
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
 
-    mqttc.publish(topic, payload=version)
-    return 'OTA update scheduled OK'
+    (res, mid) =  mqttc.publish(topic, payload=version , qos=1, retain=False)
+    info = "OTA request sent to device %s for version %s" % (device, version)
+    logging.info(info)
+
+    return info
 
 def scan_firmware():
     fw = {}

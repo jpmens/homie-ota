@@ -6,7 +6,7 @@ __copyright__ = 'Copyright 2016 Jan-Piet Mens'
 
 # wget http://bottlepy.org/bottle.py
 # ... or ... pip install bottle
-from bottle import get, request, run, static_file, HTTPResponse, template
+from bottle import get, route, request, run, static_file, HTTPResponse, template
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
@@ -66,7 +66,7 @@ mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userda
 
 # Persisted inventory store
 db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', format='json')
-fw = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'firmware.json'), 'c', format='json')
+
 
 def exitus():
     db.close()
@@ -92,21 +92,38 @@ def index():
 
 @get('/firmware')
 def firmware():
+    fw = scan_firmware()
     return template('firmware', fw=fw)
 
 @get('/inventory')
 def inventory():
     return template('inventory', db=db)
 
+@route('/upload', method='POST')
+def upload():
+    firmware = request.forms.get('firmware')
+    version = request.forms.get('version')
+    upload = request.files.get('upload')
+
+    firmware_path = os.path.join(OTA_FIRMWARE_ROOT, firmware)
+    firmware_binary = firmware + '-' + version + '.bin'
+    firmware_file = os.path.join(firmware_path, firmware_binary)
+
+    if not os.path.exists(firmware_path):
+        os.mkdir(firmware_path)
+
+    upload.save(firmware_file)
+    return 'Uploaded OK'
 
 def scan_firmware():
+    fw = {}
     for firmware in os.listdir(OTA_FIRMWARE_ROOT):
-        firmware_path = OTA_FIRMWARE_ROOT + '/' + firmware
+        firmware_path = os.path.join(OTA_FIRMWARE_ROOT, firmware)
         if not os.path.isdir(firmware_path):
             continue
 
         for filename in os.listdir(firmware_path):
-            firmware_file = firmware_path + '/' + filename
+            firmware_file = os.path.join(firmware_path, filename)
             if not os.path.isfile(firmware_file):
                 continue
 
@@ -117,7 +134,7 @@ def scan_firmware():
             fw[firmware_file]['firmware'] = firmware
             fw[firmware_file]['filename'] = filename
             fw[firmware_file]['version'] = version
-
+    return fw
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
 # X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
@@ -197,8 +214,6 @@ def on_log(mosq, userdata, level, string):
     logging.debug(string)
 
 if __name__ == '__main__':
-
-    scan_firmware()
 
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect

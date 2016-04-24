@@ -265,7 +265,7 @@ if __name__ == '__main__':
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect
     mqttc.on_message = on_message
-    mqttc.on_log = on_log
+    # mqttc.on_log = on_log
 
     if MQTT_CAFILE:
         mqttc.tls_set(MQTT_CAFILE)

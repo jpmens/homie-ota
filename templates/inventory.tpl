@@ -44,13 +44,14 @@
   <table border="0">
     <tr><td>Device:</td>
     <td><select name="device">
+    	<option value="-" selected>Select device...</option>
 %for device in sorted(db):
   <option value="{{device}}">{{device}} ({{db[device]['fwname']}} @ {{db[device]['fwversion']}})</option>
 %end
     </select></td></tr>
     <tr><td>Firmware:</td>
     <td><select name="firmware">
-    	<option value="-" selected>Select...</option>
+    	<option value="-" selected>Select firmware...</option>
 %for firmware in sorted(fw):
   <option value="{{fw[firmware]['firmware']}}@{{fw[firmware]['version']}}">{{fw[firmware]['firmware']}} @ {{fw[firmware]['version']}}</option>
 %end

@@ -226,6 +226,8 @@ def update():
     device = request.forms.get('device')
     firmware = request.forms.get('firmware')
 
+    if device == '-':
+        return "OTA request aborted; no device chosen"
     if firmware == '-':
         return "OTA request aborted; no firmware chosen"
 

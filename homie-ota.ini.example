@@ -12,4 +12,4 @@ MQTT_HOST		= localhost
 MQTT_PORT		= 1883
 MQTT_USERNAME		= John
 MQTT_PASSWORD		= secret
-MQTT_SENSOR_PREFIX	= sensors/homie
+MQTT_SENSOR_PREFIX	= devices

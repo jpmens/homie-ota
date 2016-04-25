@@ -50,6 +50,7 @@
     </select></td></tr>
     <tr><td>Firmware:</td>
     <td><select name="firmware">
+    	<option value="-" selected>Select...</option>
 %for firmware in sorted(fw):
   <option value="{{fw[firmware]['firmware']}}@{{fw[firmware]['version']}}">{{fw[firmware]['firmware']}} @ {{fw[firmware]['version']}}</option>
 %end

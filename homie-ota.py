@@ -226,6 +226,9 @@ def update():
     device = request.forms.get('device')
     firmware = request.forms.get('firmware')
 
+    if firmware == '-':
+        return "OTA request aborted; no firmware chosen"
+
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
     (res, mid) =  mqttc.publish(topic, payload=firmware, qos=1, retain=False)
 

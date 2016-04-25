@@ -1,10 +1,10 @@
 [global]
 DEBUG			= True
 
-OTA_HOST		= web01.home
+OTA_HOST		= 0.0.0.0
 OTA_PORT		= 9080
-OTA_ENDPOINT		= homie-ota
-OTA_FIRMWARE_ROOT	= .
+OTA_ENDPOINT		= /ota
+OTA_FIRMWARE_ROOT	= /path/to/firmwares
 
 [mqtt]
 MQTT_HOST		= localhost

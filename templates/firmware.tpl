@@ -14,12 +14,12 @@
 <table border="1">
 <thead>
 <tr>
-  <th>firmware</th><th>version</th><th>filename</th><th>size</th>
+  <th>firmware</th><th>version</th><th>filename</th><th>size</th><th>description</th>
 </tr>
 </thead>
 %for path in sorted(fw):
 <tr>
-%for item in ['firmware', 'version', 'filename', 'size']:
+%for item in ['firmware', 'version', 'filename', 'size', 'description']:
   %if item in fw[path]:
     <td>{{fw[path][item]}}</td>
   %else:
@@ -36,6 +36,7 @@
 <form action="/upload" method="post" enctype="multipart/form-data">
   <table border="0">
     <tr><td>Firmware Binary:</td><td><input type="file" name="upload"></td></tr>
+    <tr><td>Description:</td><td><input type="text" name="description"></td></tr>
     <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>

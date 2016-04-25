@@ -175,6 +175,7 @@ def upload():
        '''
 
     upload = request.files.upload
+    description = request.forms.get('description')
 
     if upload and upload.file:
         firmware_binary = upload.file.read()
@@ -194,6 +195,7 @@ def upload():
         fwname = regex_name_result.group(1)
         fwversion = regex_version_result.group(1)
         fw_file = os.path.join(OTA_FIRMWARE_ROOT, fwname + '-' + fwversion + '.bin')
+        description_file = os.path.join(OTA_FIRMWARE_ROOT, fwname + '-' + fwversion + '.txt')
 
         try:
             f = open(fw_file, "wb")
@@ -201,6 +203,15 @@ def upload():
             f.close()
         except Exception, e:
             resp = "Cannot write %s: %s" % (fw_file, str(e))
+            logging.info(resp)
+            return resp
+
+        try:
+            f = open(description_file, "wb")
+            f.write(description)
+            f.close()
+        except Exception, e:
+            resp = "Cannot write description to file %s: %s" % (description_file, str(e))
             logging.info(resp)
             return resp
 
@@ -241,8 +252,18 @@ def scan_firmware():
 
         fw[fw_file] = {}
         fw[fw_file]['filename'] = fw_file
-        fw[fw_file]['firmware'] = regex_result.group(1)
-        fw[fw_file]['version'] = regex_result.group(2)
+        firmware = regex_result.group(1)
+        version = regex_result.group(2)
+        fw[fw_file]['firmware'] = firmware
+        fw[fw_file]['version'] = version
+
+        description = ""
+        try:
+            description = open("%s/%s-%s.txt" % (OTA_FIRMWARE_ROOT, firmware, version), "r").read()
+        except:
+            pass
+        fw[fw_file]['description'] = description
+
 
         stat = os.stat(fw_path)
         fw[fw_file]['size'] = stat.st_size

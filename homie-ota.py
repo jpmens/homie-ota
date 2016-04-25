@@ -128,7 +128,6 @@ def blurb():
 @get('/firmware')
 def firmware():
     fw = scan_firmware()
-    print json.dumps(fw, indent=4)
     return template('templates/firmware', fw=fw)
 
 @get('/')
@@ -180,24 +179,18 @@ def upload():
 
         fwname = regex_name_result.group(1)
         fwversion = regex_version_result.group(1)
-
-        firmware_path = os.path.join(OTA_FIRMWARE_ROOT, fwname)
-        fwfile = fwname + '-' + fwversion + '.bin'
-        firmware_file = os.path.join(firmware_path, fwfile)
-
-        if not os.path.exists(firmware_path):
-            os.mkdir(firmware_path)
+        fw_file = os.path.join(OTA_FIRMWARE_ROOT, fwname + '-' + fwversion + '.bin')
 
         try:
-            f = open(firmware_file, "wb")
+            f = open(fw_file, "wb")
             f.write(firmware_binary)
             f.close()
         except Exception, e:
-            resp = "Cannot write %s: %s" % (firmware_file, str(e))
+            resp = "Cannot write %s: %s" % (fw_file, str(e))
             logging.info(resp)
             return resp
 
-        resp = "Firmware from %s uploaded as %s" % (filename, firmware_file)
+        resp = "Firmware from %s uploaded as %s" % (filename, fw_file)
         logging.info(resp)
         return resp
 
@@ -207,48 +200,42 @@ def upload():
 def update():
     device = request.forms.get('device')
     firmware = request.forms.get('firmware')
-    version = request.forms.get('version')
-
-    # we store the selected firmware and version in our device db
-    # so when the OTA request arrives we can validate and also
-    # allow firmware overrides (i.e. change from fw1 -> fw2)
-    db[device]['otafirmware'] = firmware
-    db[device]['otaversion'] = version
 
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-    (res, mid) =  mqttc.publish(topic, payload=version , qos=1, retain=False)
+    (res, mid) =  mqttc.publish(topic, payload=firmware, qos=1, retain=False)
 
-    info = "OTA request sent to device %s for update to %s v%s" % (device, firmware, version)
+    info = "OTA request sent to device %s for update to %s" % (device, firmware)
     logging.info(info)
 
     return info
 
 def scan_firmware():
     fw = {}
-    for firmware in os.listdir(OTA_FIRMWARE_ROOT):
-        firmware_path = os.path.join(OTA_FIRMWARE_ROOT, firmware)
-        if not os.path.isdir(firmware_path):
+    for fw_file in os.listdir(OTA_FIRMWARE_ROOT):
+        fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
+        if not os.path.isfile(fw_path):
+            continue
+        if not fw_file.endswith('.bin'):
             continue
 
-        for filename in os.listdir(firmware_path):
-            firmware_file = os.path.join(firmware_path, filename)
-            if not os.path.isfile(firmware_file):
-                continue
+        regex = re.compile("(.*)\-(\d+\.\d+\.\d+)\.bin")
+        regex_result = regex.search(fw_file)
 
-            if firmware_file not in fw:
-                fw[firmware_file] = {}
+        if not regex_result:
+            logging.debug("Could not parse firmware details from %s, skipping" % (fw_file))
+            continue
 
-            # parse the version number (<fwname>-x.x.x.bin)
-            version = filename[len(firmware) + 1:-4]
+        fw[fw_file] = {}
+        fw[fw_file]['filename'] = fw_file
+        fw[fw_file]['firmware'] = regex_result.group(1)
+        fw[fw_file]['version'] = regex_result.group(2)
 
-            fw[firmware_file]['firmware'] = firmware
-            fw[firmware_file]['filename'] = filename
-            fw[firmware_file]['version'] = version
+        stat = os.stat(fw_path)
+        fw[fw_file]['size'] = stat.st_size
 
-            stat = os.stat(firmware_file)
-            fw[firmware_file]['size'] = stat.st_size
-
+    #print json.dumps(fw, indent=4)
     return fw
+
 
 # X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
 # X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
@@ -271,8 +258,6 @@ def ota():
     for k in headers:
         logging.debug(k + ' = ' + headers[k])
 
-    # TODO: check free space vs .bin file on disk and refuse
-
     try:
         device, firmware_name, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
     except:
@@ -281,32 +266,35 @@ def ota():
 
     logging.info("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
 
-    if not db[device]:
-        logging.warn("OTA update request received for device %s which is not in our inventory" % (device))
-        return HTTPResponse(status=403, body="Not permitted")
+    # if the want_version contains the special '@' separator then
+    # this is a request from ourselves with both fw_name and 
+    # fw_version included - allowing for fw changes
+    if '@' in want_version:
+        fw_name, fw_version = want_version.split('@') 
+    else:
+        fw_name = firmware_name
+        fw_version = want_version
 
-    if not db[device]['otafirmware'] or not db[device]['otaversion']:
-        logging.warn("OTA update request received for device %s which has no current OTA update scheduled" % (device))
-        return HTTPResponse(status=403, body="Not permitted")
+    fw_file = "%s-%s.bin" % (fw_name, fw_version)
+    fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
 
-    # TODO: ignore selected firmware and just attempt same-fw update
-    #otafirmware = db[device]['otafirmware']
-    #otaversion = db[device]['otaversion']
-    otafirmware = firmware_name
-    otaversion = want_version
+    if not os.path.exists(fw_path):
+        logging.warn("%s not found; returning 304" % (fw_path))
+        return HTTPResponse(status=304, body="OTA aborted, firmware not found")
 
-    # <firmware_root>/<firmware_name>/<firmware_name-x.x.x.bin
-    # e.g. './h-sensor/h-sensor-1.0.3.bin'
-    firmware_path = "%s/%s" % (OTA_FIRMWARE_ROOT, otafirmware)
-    binary = "%s-%s.bin" % (otafirmware, otaversion)
-    binary_path = "%s/%s" % (firmware_path, binary)
+    # check free space vs .bin file on disk and refuse
+    stat = os.stat(fw_path)
+    fw_size = stat.st_size
+    try:
+        free_space = headers.get('X-Esp8266-Free-Space', None)
+        if free_space and free_space < fw_size:
+            logging.warn("Firmware too big, %d free on device but binary is %d; returning 304" % (free_space, fw_size))
+            return HTTPResponse(status=304, body="OTA aborted, not enough free space on device")
+    except:
+        logging.warn("Can't find X-Esp8266-Free-Space in headers; skipping size checks")
 
-    if not os.path.exists(binary_path):
-        logging.warn("%s not found; returning 403" % (binary_path))
-        return HTTPResponse(status=403, body="Firmware not found")
-
-    logging.info("Return OTA firmware %s" % (binary_path))
-    return static_file(binary, root=firmware_path)
+    logging.info("Returning OTA firmware %s" % (fw_path))
+    return static_file(fw_file, root=OTA_FIRMWARE_ROOT)
 
 
 def on_connect(mosq, userdata, rc):
@@ -345,6 +333,10 @@ def on_log(mosq, userdata, level, string):
     logging.debug(string)
 
 if __name__ == '__main__':
+
+    if not os.path.exists(OTA_FIRMWARE_ROOT):
+        logging.error("Firmware root (%s) does not exist (or is not a directory)"% (OTA_FIRMWARE_ROOT))
+        sys.exit(2)
 
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect

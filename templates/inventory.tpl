@@ -45,19 +45,18 @@
 <h3>Schedule OTA update</h3>
 <form action="/update" method="post" enctype="multipart/form-data">
   <table border="0">
-    <tr><td>Device (current):</td>
+    <tr><td>Device:</td>
     <td><select name="device">
 %for device in sorted(db):
-  <option value="{{device}}">{{device}} ({{db[device]['fwname']}} v{{db[device]['fwversion']}})</option>
+  <option value="{{device}}">{{device}} ({{db[device]['fwname']}} @ {{db[device]['fwversion']}})</option>
 %end
     </select></td></tr>
-    <tr><td>New Firmware:</td>
+    <tr><td>Firmware:</td>
     <td><select name="firmware">
-%for firmware in sorted(set([fw[f]['firmware'] for f in fw])):
-  <option value="{{firmware}}">{{firmware}}</option>
+%for firmware in sorted(fw):
+  <option value="{{fw[firmware]['firmware']}}@{{fw[firmware]['version']}}">{{fw[firmware]['firmware']}} @ {{fw[firmware]['version']}}</option>
 %end
     </select></td></tr>
-    <tr><td>New Version:</td><td><input type="text" name="version"></td></tr>
     <tr><td>Schedule:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>

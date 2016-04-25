@@ -35,7 +35,7 @@
 <h3>Firmware upload</h3>
 <form action="/upload" method="post" enctype="multipart/form-data">
   <table border="0">
-    <tr><td>Auto-Detectable Binary:</td><td><input type="file" name="upload"></td></tr>
+    <tr><td>Firmware Binary:</td><td><input type="file" name="upload"></td></tr>
     <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>

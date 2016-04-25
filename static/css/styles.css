@@ -78,3 +78,6 @@ td.detailvalue {
 	font-family: Courier, monospace;
 	padding: 4px;
 }
+
+a:link { color: blue; }
+a:visited { color: blue; }

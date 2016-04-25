@@ -22,14 +22,11 @@
 </thead>
 %for device in sorted(db):
 <tr>
-<td>
-    <img src="/{{db[device].get('online', 'false')}}.png" alt="{{db[device].get('online', 'false')}}" />
-    </td>
+   <td class="online"><img src="/{{db[device].get('online', 'false')}}.png"
+   		      alt="{{db[device].get('online', 'false')}}" /></td>
 
-<td>
-   <div class="pBar" data-from="0" data-to="{{ db[device]['signal'] }}"></div>
-    </td>
-<td>{{device}}</td>
+   <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device]['signal'] }}"></div></td>
+   <td class="device"><a href="/device/{{device}}">{{device}}</a></td>
 %for item in ['localip', 'human_uptime', 'fwname', 'fwversion', 'name']:
   %if item in db[device]:
     <td>{{db[device][item]}}</td>

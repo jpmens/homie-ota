@@ -70,3 +70,11 @@ H6
 	font-family: tahoma, arial, helvetica, sans-serif;
 	color: #DDDDDD;
 }
+
+td.detailkey {
+	font-weight: bold;
+}
+td.detailvalue {
+	font-family: Courier, monospace;
+	padding: 4px;
+}

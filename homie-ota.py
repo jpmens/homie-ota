@@ -132,8 +132,13 @@ def firmware():
 
 @get('/')
 def inventory():
+    flist = []
     fw = scan_firmware()
-    return template('templates/inventory', db=db, fw=fw)
+
+    for k in fw:
+        flist.append( "%s @ %s" % (fw[k]['firmware'], fw[k]['version']))
+
+    return template('templates/inventory', db=db, fw=fw, flist=flist)
 
 @get('/<filename:re:.*\.css>')
 def stylesheets(filename):
@@ -151,6 +156,15 @@ def javascript(filename):
 def showlog():
     logdata = open(LOGFILE, "r").read()
     return template('templates/log', data=logdata)
+
+@get('/device/<device>')
+def showdevice(device):
+
+    data = None
+    if device in db:
+        data = db[device]
+
+    return template('templates/device', device=device, data=data)
 
 @route('/upload', method='POST')
 def upload():
@@ -264,6 +278,14 @@ def ota():
         logging.warn("Can't find X-Esp8266-Version in headers; returning 403")
         return HTTPResponse(status=403, body="Not permitted")
 
+    # Record additional detains in DB
+    if device not in db:
+        db[device] = {}
+    db[device]['mac']           = headers.get('X-Esp8266-Ap-Mac', None)
+    db[device]['free_space']    = headers.get('X-Esp8266-Free-Space', None)
+    db[device]['chip_size']     = headers.get('X-Esp8266-Chip-Size', None)
+    db[device]['sketch_size']   = headers.get('X-Esp8266-Sketch-Size', None)
+
     logging.info("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
 
     # if the want_version contains the special '@' separator then
@@ -298,18 +320,17 @@ def ota():
 
 
 def on_connect(mosq, userdata, rc):
-    for suffix in [ '$localip', '$signal', '$uptime', '$name', '$online', '$fwname', '$fwversion' ]:
-        mqttc.subscribe("%s/+/%s" % (MQTT_SENSOR_PREFIX, suffix), 0)
+    mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
 
 def on_message(mosq, userdata, msg):
     logging.debug("%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
 
     t = str(msg.topic)
     t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
-    
+
     device, key = t.split('/')
     key = key[1:]                       # remove '$'
-    
+
     if device not in db:
         db[device] = {}
     db[device][key] = str(msg.payload)

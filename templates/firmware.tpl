@@ -7,7 +7,7 @@
 <h2>Homie device firmware</h2>
 
 <p>
-[<a href="/">Homie device inventory</a>] [<a href="/log">Logfile</a>]
+[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>]
 </p>
 
 <h3>Existing Firmware</h3>
@@ -35,7 +35,7 @@
 <h3>Firmware upload</h3>
 <form action="/upload" method="post" enctype="multipart/form-data">
   <table border="0">
-    <tr><td>Select autodetectable binary sketch:</td><td><input type="file" name="upload"></td></tr>
+    <tr><td>Auto-Detectable Binary:</td><td><input type="file" name="upload"></td></tr>
     <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>

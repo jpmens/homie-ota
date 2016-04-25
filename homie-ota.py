@@ -103,14 +103,13 @@ def uptime(seconds=0):
     if days > 0:
         string += str(days) + " " + (days == 1 and "day" or "days" ) + ", "
 
-
     string = string + "%d:%02d:%02d" % (hours, minutes, seconds)
 
     return string
 
 
 @get('/blurb')
-def index():
+def blurb():
     text =  """Homie OTA server running.
     OTA endpoint is: http://{host}:{port}/{endpoint}
     Firmware root is {fwroot}\n""".format(host=OTA_HOST,
@@ -134,7 +133,8 @@ def firmware():
 
 @get('/')
 def inventory():
-    return template('templates/inventory', db=db)
+    fw = scan_firmware()
+    return template('templates/inventory', db=db, fw=fw)
 
 @get('/<filename:re:.*\.css>')
 def stylesheets(filename):
@@ -206,14 +206,19 @@ def upload():
 @route('/update', method='POST')
 def update():
     device = request.forms.get('device')
+    firmware = request.forms.get('firmware')
     version = request.forms.get('version')
 
-    logging.debug("OTA update requested for %s v%s" % (device, version))
+    # we store the selected firmware and version in our device db
+    # so when the OTA request arrives we can validate and also
+    # allow firmware overrides (i.e. change from fw1 -> fw2)
+    db[device]['otafirmware'] = firmware
+    db[device]['otaversion'] = version
 
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-
     (res, mid) =  mqttc.publish(topic, payload=version , qos=1, retain=False)
-    info = "OTA request sent to device %s for version %s" % (device, version)
+
+    info = "OTA request sent to device %s for update to %s v%s" % (device, firmware, version)
     logging.info(info)
 
     return info
@@ -233,7 +238,9 @@ def scan_firmware():
             if firmware_file not in fw:
                 fw[firmware_file] = {}
 
-            version = filename.lstrip(firmware + '-').rstrip('.bin')
+            # parse the version number (<fwname>-x.x.x.bin)
+            version = filename[len(firmware) + 1:-4]
+
             fw[firmware_file]['firmware'] = firmware
             fw[firmware_file]['filename'] = filename
             fw[firmware_file]['version'] = version
@@ -274,10 +281,24 @@ def ota():
 
     logging.info("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
 
+    if not db[device]:
+        logging.warn("OTA update request received for device %s which is not in our inventory" % (device))
+        return HTTPResponse(status=403, body="Not permitted")
+
+    if not db[device]['otafirmware'] or not db[device]['otaversion']:
+        logging.warn("OTA update request received for device %s which has no current OTA update scheduled" % (device))
+        return HTTPResponse(status=403, body="Not permitted")
+
+    # TODO: ignore selected firmware and just attempt same-fw update
+    #otafirmware = db[device]['otafirmware']
+    #otaversion = db[device]['otaversion']
+    otafirmware = firmware_name
+    otaversion = want_version
+
     # <firmware_root>/<firmware_name>/<firmware_name-x.x.x.bin
     # e.g. './h-sensor/h-sensor-1.0.3.bin'
-    firmware_path = "%s/%s" % (OTA_FIRMWARE_ROOT, firmware_name)
-    binary = "%s-%s.bin" % (firmware_name, want_version)
+    firmware_path = "%s/%s" % (OTA_FIRMWARE_ROOT, otafirmware)
+    binary = "%s-%s.bin" % (otafirmware, otaversion)
     binary_path = "%s/%s" % (firmware_path, binary)
 
     if not os.path.exists(binary_path):

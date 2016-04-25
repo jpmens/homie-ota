@@ -10,7 +10,7 @@
 <h2>Homie device inventory</h2>
 
 <p>
-[<a href="/firmware">Homie device firmware</a>] [<a href="/log">Logfile</a>]
+[<a href="/firmware">Homie device firmware</a>] [<a href="/log">Log</a>]
 </p>
 
 <h3>Registered devices</h3>
@@ -45,17 +45,22 @@
 <h3>Schedule OTA update</h3>
 <form action="/update" method="post" enctype="multipart/form-data">
   <table border="0">
-    <tr><td>Device:</td>
-<td><select name="device">
+    <tr><td>Device (current):</td>
+    <td><select name="device">
 %for device in sorted(db):
   <option value="{{device}}">{{device}} ({{db[device]['fwname']}} v{{db[device]['fwversion']}})</option>
 %end
-</select></td></tr>
-    <tr><td>Version (x.x.x):</td><td><input type="text" name="version"></td></tr>
+    </select></td></tr>
+    <tr><td>New Firmware:</td>
+    <td><select name="firmware">
+%for firmware in sorted(set([fw[f]['firmware'] for f in fw])):
+  <option value="{{firmware}}">{{firmware}}</option>
+%end
+    </select></td></tr>
+    <tr><td>New Version:</td><td><input type="text" name="version"></td></tr>
     <tr><td>Schedule:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>
-
 
 
 </body>

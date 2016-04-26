@@ -28,6 +28,8 @@ devices/0fbbe2e0/$ota 72555b88ae@1.0.3
 OTA available (version 72555b88ae@1.0.3)
 ```
 
+NOTE: homie-ota also supports external OTA update requests, as per the [Homie Convention][convention], which can be manually triggered by publishing the new version to the `/$ota` topic of a device. The payload should just be the version number in the format `x.x.x`. This only allows _upgrades_ to the currently installed firmware, i.e. you cannot swap out the firmware as you can by scheduling an OTA update through homie-ota.
+
 ## Installation
 
 Obtain homie-ota and its [requirements](requirements.txt). Copy the exmple configuration file to `homie-ota.ini` and adjust, creating the `OTA_FIRMWARE_ROOT` firmware directory if it doesn't yet exist.

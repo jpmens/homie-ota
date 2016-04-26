@@ -25,9 +25,22 @@
    <td class="online"><img src="/{{db[device].get('online', 'false')}}.png"
    		      alt="{{db[device].get('online', 'false')}}" /></td>
 
+%if db[device].get('online', 'false') == 'true':
    <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
+%else:
+   <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
+%end
    <td class="device"><a href="/device/{{device}}">{{device}}</a></td>
-%for item in ['localip', 'human_uptime', 'fwname', 'fwversion', 'name']:
+
+%for item in ['localip', 'human_uptime']:
+  %if item in db[device] and db[device].get('online', 'false') == 'true':
+    <td>{{db[device][item]}}</td>
+  %else:
+    <td></td>
+  %end
+%end
+
+%for item in ['fwname', 'fwversion', 'name']:
   %if item in db[device]:
     <td>{{db[device][item]}}</td>
   %else:

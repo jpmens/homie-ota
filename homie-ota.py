@@ -11,6 +11,7 @@ import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
 import sys
+import hashlib
 import logging
 import ConfigParser
 import atexit
@@ -25,6 +26,9 @@ import re
 APPNAME = os.path.splitext(os.path.basename(__file__))[0]
 INIFILE = os.getenv('INIFILE', APPNAME + '.ini')
 LOGFILE = os.getenv('LOGFILE', APPNAME + '.log')
+
+# max length that Homie will accept when publishing to $ota
+OTA_HOMIE_PAYLOAD_MAX_LENGTH = 16
 
 # Read the config file
 config = ConfigParser.RawConfigParser()
@@ -81,6 +85,21 @@ mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userda
 # Persisted inventory store
 db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', format='json')
 
+def generate_ota_payload(firmware):
+    # if no '@' then payload is just a version number
+    if '@' not in firmware:
+        return firmware
+
+    fw_name, fw_version = firmware.split('@')
+    hash = hashlib.sha1()
+    hash.update(fw_name)
+
+    # ensure our hash doesn't make our payload too big
+    fw_hashlen = OTA_HOMIE_PAYLOAD_MAX_LENGTH - len(fw_version) - 1
+    fw_hash = hash.hexdigest()[:fw_hashlen]
+
+    # ota payload is <hash>@<version>
+    return "%s@%s" % (fw_hash, fw_version)
 
 def exitus():
     db.sync()
@@ -132,13 +151,8 @@ def firmware():
 
 @get('/')
 def inventory():
-    flist = []
     fw = scan_firmware()
-
-    for k in fw:
-        flist.append( "%s @ %s" % (fw[k]['firmware'], fw[k]['version']))
-
-    return template('templates/inventory', db=db, fw=fw, flist=flist)
+    return template('templates/inventory', db=db, fw=fw)
 
 @get('/<filename:re:.*\.css>')
 def stylesheets(filename):
@@ -254,7 +268,8 @@ def update():
         return "OTA request aborted; no firmware chosen"
 
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-    (res, mid) =  mqttc.publish(topic, payload=firmware, qos=1, retain=False)
+    payload = generate_ota_payload(firmware)
+    (res, mid) =  mqttc.publish(topic, payload=payload, qos=1, retain=False)
 
     info = "OTA request sent to device %s for update to %s" % (device, firmware)
     logging.info(info)
@@ -339,15 +354,24 @@ def ota():
     # if the want_version contains the special '@' separator then
     # this is a request from ourselves with both fw_name and 
     # fw_version included - allowing for fw changes
+    fw_file = None
     if '@' in want_version:
-        fw_name, fw_version = want_version.split('@') 
+        fw = scan_firmware()
+        for fw_key in fw:
+            firmware = "%s@%s" % (fw[fw_key]['firmware'], fw[fw_key]['version'])
+            if generate_ota_payload(firmware) == want_version:
+                fw_file = fw[fw_key]['filename']
+                break
     else:
         fw_name = firmware_name
         fw_version = want_version
+        fw_file = "%s-%s.bin" % (fw_name, fw_version)
 
-    fw_file = "%s-%s.bin" % (fw_name, fw_version)
+    if fw_file is None:
+        logging.warn("Firmware not found, %s does not match any firmware in our list; returning 304" % (want_version))
+        return HTTPResponse(status=304, body="OTA aborted, firmware not found")
+
     fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
-
     if not os.path.exists(fw_path):
         logging.warn("%s not found; returning 304" % (fw_path))
         return HTTPResponse(status=304, body="OTA aborted, firmware not found")

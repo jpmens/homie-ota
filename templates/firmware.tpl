@@ -14,7 +14,7 @@
 <table border="1">
 <thead>
 <tr>
-  <th>firmware</th><th>version</th><th>filename</th><th>size</th><th>description</th>
+  <th>firmware</th><th>version</th><th>filename</th><th>size</th><th>description</th><th>delete</th>
 </tr>
 </thead>
 %for path in sorted(fw):
@@ -26,6 +26,7 @@
     <td></td>
   %end
 %end
+   <td class="delete"><a href="/delete/{{path}}">delete</a></td>
 </tr>
 %end
 </table>

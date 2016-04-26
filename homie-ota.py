@@ -166,6 +166,28 @@ def showdevice(device):
 
     return template('templates/device', device=device, data=data)
 
+@get('/delete/<fw_file>')
+def delete(fw_file):
+    fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
+
+    if not os.path.exists(fw_path):
+        resp = "Unable to delete firmware %s, does not exist" % (fw_path)
+        logging.warn(resp)
+        return resp
+
+    filename, file_ext = os.path.splitext(fw_file)
+    description_file = filename + '.txt'
+    description_path = os.path.join(OTA_FIRMWARE_ROOT, description_file)
+
+    if os.path.exists(description_path):
+        os.remove(description_path)
+        
+    os.remove(fw_path)
+
+    resp = "Deleted firmware %s" % (fw_file)
+    logging.info(resp)
+    return resp
+
 @route('/upload', method='POST')
 def upload():
     '''Accept an uploaded, compiled binary sketch and obtain the firmware's

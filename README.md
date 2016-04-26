@@ -20,6 +20,14 @@ Firmware files are uploaded into homie-ota via its Web interface, and they must 
 
 homie-ota makes it easy to deploy a different firmware onto an ESP8266 device: simply select the firmware you want on the device and queue the OTA request. As per the [Homie Convention][convention], this request is published over MQTT, however note that homie-ota does **not** currently publish this message retained which means, that if the device is currently not online, it will miss an update. (This is by design to avoid OTA loops.)
 
+Due to sensible limitations in [Homie], the string containing the concatenation of firmware name and version may not be longer than 16 characters. In order for you to be able to name your firmware however you'd like to, what homie-ota does is to hash the name when triggering an OTA request to a device. As such, if you're watching a serial console, or the publish going via your MQTT broker, you'll see something like this:
+
+```
+devices/0fbbe2e0/$ota 72555b88ae@1.0.3
+
+OTA available (version 72555b88ae@1.0.3)
+```
+
 ## Installation
 
 Obtain homie-ota and its [requirements](requirements.txt). Copy the exmple configuration file to `homie-ota.ini` and adjust, creating the `OTA_FIRMWARE_ROOT` firmware directory if it doesn't yet exist.

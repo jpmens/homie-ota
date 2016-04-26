@@ -16,7 +16,7 @@ homie-ota contains a built-in HTTP server powered by [Bottle]; this is the bit t
 
 ## Firmwares
 
-Firmware files are uploaded into homie-ota via its Web interface, and they must contain the magic tokens in order for homie-ota to correctly process them. (See below for how to create those.) All firmware files are stored in the `OTA_FIRMWARE_ROOT` directory as `<name>@<version>`, with _name_ being the name of the firmware and _version_ it's semantic version number (e.g. `dual-relay@1.0.5`).
+Firmware files are uploaded into homie-ota via its Web interface, and they must contain the magic tokens in order for homie-ota to correctly process them. (See below for how to create those.) All firmware files are stored in the `OTA_FIRMWARE_ROOT` directory as `<name>-<version>.bin`, with _name_ being the name of the firmware and _version_ it's semantic version number (e.g. `dual-relay-1.0.5`). In addition, an optional description you enter is stored as `<name>-<version>.txt`.
 
 homie-ota makes it easy to deploy a different firmware onto an ESP8266 device: simply select the firmware you want on the device and queue the OTA request. As per the [Homie Convention][convention], this request is published over MQTT, however note that homie-ota does **not** currently publish this message retained which means, that if the device is currently not online, it will miss an update. (This is by design to avoid OTA loops.)
 
@@ -38,7 +38,7 @@ Configure your [Homie] devices to actually use homie-ota by providing the approp
 In order to use the Autodetectable Binary Upload™, your Homie sketch should contain a magic expression in it as shown in the [example sketch](assets/example.ino). When you're ready, compile the binary. To upload it: under the `Sketch` menu in the Arduino IDE, select `Export compiled Binary`; the binary `.bin` will be placed in the sketch's directory, and you upload that file to homie-ota; it will detect the firmware name and version, store it into the correct directory, and make it available in the list of upgradable firmware files.
 
 ```
-Firmware from ed-relay.ino.d1_mini.bin uploaded as firmwares/dual-relay/dual-relay-1.0.2.bin
+Firmware from ed-relay.ino.d1_mini.bin uploaded as firmwares/dual-relay-1.0.5.bin
 ```
 
 

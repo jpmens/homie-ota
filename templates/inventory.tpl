@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Homie devices</title>
+  <meta http-equiv="refresh" content="60" />
+
   <link rel="stylesheet" href="styles.css">
   <script type="text/javascript" src="jquery.min.js"></script>
   <!-- https://github.com/lastdates/pBar -->

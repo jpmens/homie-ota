@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Homie OTA server log</title>
+  <meta http-equiv="refresh" content="60" />
+
   <link rel="stylesheet" href="styles.css">
   </head>
 <body>

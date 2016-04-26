@@ -4,7 +4,7 @@ DEBUG			= True
 OTA_HOST		= 0.0.0.0
 OTA_PORT		= 9080
 OTA_ENDPOINT		= /ota
-OTA_FIRMWARE_ROOT	= /path/to/firmwares
+OTA_FIRMWARE_ROOT	= ./firmwares
 
 [mqtt]
 MQTT_HOST		= localhost

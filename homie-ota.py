@@ -178,7 +178,7 @@ def showlog():
 def showdevice(device):
 
     data = None
-    sensor = None
+    sensor = {}
     if device in db:
         data = db[device]
 

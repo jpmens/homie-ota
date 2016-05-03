@@ -28,5 +28,19 @@
 %end
 </table>
 
+<h3>Sensor data for device {{device}}</h3>
+<table border="1">
+<thead>
+<tr>
+  <th>key</th><th>value</th>
+</tr>
+</thead>
+%for item in sensor:
+<tr>
+  <td class="detailkey">{{item}}</td>
+  <td class="detailvalue">{{ sensor[item] }}</td>
+</tr>
+%end
+</table>
 </body>
 </html>

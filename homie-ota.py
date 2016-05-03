@@ -84,6 +84,7 @@ mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userda
 
 # Persisted inventory store
 db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', format='json')
+sensors = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'sensors.json'), 'c', format='json')
 
 def generate_ota_payload(firmware):
     # if no '@' then payload is just a version number
@@ -104,6 +105,8 @@ def generate_ota_payload(firmware):
 def exitus():
     db.sync()
     db.close()
+    sensors.sync()
+    sensors.close()
     logging.debug("CIAO")
 
 def uptime(seconds=0):
@@ -175,10 +178,14 @@ def showlog():
 def showdevice(device):
 
     data = None
+    sensor = None
     if device in db:
         data = db[device]
 
-    return template('templates/device', device=device, data=data)
+    if device in sensors:
+        sensor = sensors[device]
+
+    return template('templates/device', device=device, data=data, sensor=sensor)
 
 @get('/delete/<fw_file>')
 def delete(fw_file):
@@ -405,9 +412,9 @@ def on_data(mosq, userdata, msg):
     subtopic = "%s/%s" % (key, subkey)
     # print "DATA", device, subtopic, msg.payload
 
-    if device not in db:
-        db[device] = {}
-    db[device][subtopic] = msg.payload
+    if device not in sensors:
+        sensors[device] = {}
+    sensors[device][subtopic] = msg.payload
 
 def on_message(mosq, userdata, msg):
     logging.debug("%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))

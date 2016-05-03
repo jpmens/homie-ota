@@ -12,7 +12,7 @@ homie-ota contains a built-in HTTP server powered by [Bottle]; this is the bit t
 * Upload new firmware to the firmware store.
 * Trigger OTA firmware update by MQTT publish to a Homie device
 * Logging
-* View device details
+* View device details and sensor readings
 
 ## Firmwares
 

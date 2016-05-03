@@ -47,9 +47,17 @@ Configure your [Homie] devices to actually use homie-ota by providing the approp
 
 In order to use the Autodetectable Binary Upload™, your Homie sketch should contain a magic expression in it as shown in the [example sketch](assets/example.ino). When you're ready, compile the binary. To upload it: under the `Sketch` menu in the Arduino IDE, select `Export compiled Binary`; the binary `.bin` will be placed in the sketch's directory, and you upload that file to homie-ota; it will detect the firmware name and version, store it into the correct directory, and make it available in the list of upgradable firmware files.
 
+You can upload the file directly to homie-ota from the command-line using _curl_, say:
+
 ```
-Firmware from ed-relay.ino.d1_mini.bin uploaded as firmwares/dual-relay-1.0.5.bin
+$ curl -F upload=@lt.ino.d1_mini.bin \
+       -F description="D1-mini with homie-1.4.1" \
+       http://homie-ota.example.org:9080/upload
+
+Firmware from lt.ino.d1_mini.bin uploaded as /path/to/firmwares/lt-2.0.0.bin
 ```
+
+We do this directly from the sketch directory into which the _exported binary_ was written.
 
 
   [Homie]: https://github.com/marvinroger/homie-esp8266

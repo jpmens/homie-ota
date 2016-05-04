@@ -403,34 +403,40 @@ def on_connect(mosq, userdata, rc):
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
 
 def on_sensor(mosq, userdata, msg):
-    logging.debug("SENSOR %s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
+    logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
 
-    t = str(msg.topic)
-    t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
-    device, key, subkey = t.split('/')
+    try:
+        t = str(msg.topic)
+        t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
+        device, key, subkey = t.split('/')
 
-    subtopic = "%s/%s" % (key, subkey)
-    # print "DATA", device, subtopic, msg.payload
+        subtopic = "%s/%s" % (key, subkey)
+        # print "DATA", device, subtopic, msg.payload
 
-    if device not in sensors:
-        sensors[device] = {}
-    sensors[device][subtopic] = msg.payload
+        if device not in sensors:
+            sensors[device] = {}
+        sensors[device][subtopic] = msg.payload
+    except Exception, e:
+        logging.error("Cannot extract sensor device/data: for %s: %s" % (str(msg.topic), str(e)))
 
 def on_control(mosq, userdata, msg):
-    logging.debug("CONTROL %s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
+    logging.debug("CONTROL %s %s" % (msg.topic, str(msg.payload)))
 
-    t = str(msg.topic)
-    t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
+    try:
+        t = str(msg.topic)
+        t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
 
-    device, key = t.split('/')
-    key = key[1:]                       # remove '$'
+        device, key = t.split('/')
+        key = key[1:]                       # remove '$'
 
-    if device not in db:
-        db[device] = {}
-    db[device][key] = str(msg.payload)
+        if device not in db:
+            db[device] = {}
+        db[device][key] = str(msg.payload)
 
-    if key == 'uptime':
-        db[device]['human_uptime'] = uptime( db[device].get('uptime', 0) )
+        if key == 'uptime':
+            db[device]['human_uptime'] = uptime( db[device].get('uptime', 0) )
+    except Exception, e:
+        logging.error("Cannot extract control device/data: for %s: %s" % (str(msg.topic), str(e)))
 
 def on_disconnect(mosq, userdata, rc):
     reasons = {

@@ -400,10 +400,10 @@ def ota():
 
 def on_connect(mosq, userdata, rc):
     mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
-    mqttc.subscribe("%s/+/+/#" % (MQTT_SENSOR_PREFIX), 0)
+    mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
 
-def on_data(mosq, userdata, msg):
-    # logging.debug("%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
+def on_sensor(mosq, userdata, msg):
+    logging.debug("SENSOR %s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
 
     t = str(msg.topic)
     t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
@@ -416,8 +416,8 @@ def on_data(mosq, userdata, msg):
         sensors[device] = {}
     sensors[device][subtopic] = msg.payload
 
-def on_message(mosq, userdata, msg):
-    logging.debug("%s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
+def on_control(mosq, userdata, msg):
+    logging.debug("CONTROL %s (qos=%s, r=%s) %s" % (msg.topic, str(msg.qos), msg.retain, str(msg.payload)))
 
     t = str(msg.topic)
     t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
@@ -455,8 +455,8 @@ if __name__ == '__main__':
 
     mqttc.on_connect = on_connect
     mqttc.on_disconnect = on_disconnect
-    mqttc.on_message = on_message
-    mqttc.message_callback_add("%s/+/+/#" % (MQTT_SENSOR_PREFIX), on_data)
+    mqttc.on_message = on_control
+    mqttc.message_callback_add("%s/+/+/+" % (MQTT_SENSOR_PREFIX), on_sensor)
     # mqttc.on_log = on_log
 
     if MQTT_CAFILE:

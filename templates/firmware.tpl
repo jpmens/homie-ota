@@ -3,7 +3,7 @@
 <head>
   <title>Homie firmware</title>
   <meta http-equiv="refresh" content="60" />
-
+  <script type="text/javascript" src="jquery.min.js"></script>
   <link rel="stylesheet" href="styles.css">
   </head>
 <body>
@@ -29,7 +29,7 @@
     <td></td>
   %end
 %end
-   <td class="delete"><a href="/delete/{{path}}">delete</a></td>
+   <td class="delete"><a href="#delete" data-file="/firmware/{{fw[path]["filename"]}}">delete</a></td>
 </tr>
 %end
 </table>
@@ -44,6 +44,25 @@
     <tr><td>Upload:</td><td><input type="submit" value="GO!"></td></tr>
   </table>
 </form>
-
+<script type="application/javascript">
+$('.delete a').bind('click', function (e){
+  e.preventDefault();
+  var elem = $(this);
+  if (confirm("Are you sure to delete the file?")) {
+    $.ajax({
+      url: $(this).data('file'),
+      type: 'DELETE',
+      async: true
+    })
+    .done(function() {
+      $(elem).closest('tr').remove();
+    })
+    .fail(function(e) {
+      alert('Error: ' + e.statusText);
+    })
+  }
+  return false;
+})
+</script>
 </body>
 </html>

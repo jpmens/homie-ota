@@ -6,7 +6,7 @@ __copyright__ = 'Copyright 2016 Jan-Piet Mens'
 
 # wget http://bottlepy.org/bottle.py
 # ... or ... pip install bottle
-from bottle import get, route, request, run, static_file, HTTPResponse, template
+from bottle import get, route, request, run, static_file, HTTPResponse, template, abort
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
@@ -187,13 +187,15 @@ def showdevice(device):
 
     return template('templates/device', device=device, data=data, sensor=sensor)
 
-@get('/delete/<fw_file>')
+@route('/firmware/<fw_file>', method='DELETE')
 def delete(fw_file):
     fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
 
     if not os.path.exists(fw_path):
         resp = "Unable to delete firmware %s, does not exist" % (fw_path)
         logging.warn(resp)
+
+        abort(404, resp)
         return resp
 
     filename, file_ext = os.path.splitext(fw_file)
@@ -202,7 +204,7 @@ def delete(fw_file):
 
     if os.path.exists(description_path):
         os.remove(description_path)
-        
+
     os.remove(fw_path)
 
     resp = "Deleted firmware %s" % (fw_file)
@@ -359,7 +361,7 @@ def ota():
     logging.info("Homie firmware=%s, have=%s, want=%s on device=%s" % (firmware_name, have_version, want_version, device))
 
     # if the want_version contains the special '@' separator then
-    # this is a request from ourselves with both fw_name and 
+    # this is a request from ourselves with both fw_name and
     # fw_version included - allowing for fw changes
     fw_file = None
     if '@' in want_version:

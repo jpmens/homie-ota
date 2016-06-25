@@ -42,6 +42,7 @@ Configure your [Homie] devices to actually use homie-ota by providing the approp
 
 ![ESP8266 Arduino](assets/jmbp-2686.png)
 
+For a complete setup (incl. autostart) check out the [installation guide](INSTALL.md) with step-by-step instructions.
 
 ## Preparing the firmware
 

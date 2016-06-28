@@ -429,7 +429,8 @@ def on_control(mosq, userdata, msg):
         t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
 
         device, key = t.split('/')
-        key = key[1:]                       # remove '$'
+        if key.startswith('$'):                 # if key starts with '$'
+            key = key[1:]                       # remove '$'
 
         if device not in db:
             db[device] = {}

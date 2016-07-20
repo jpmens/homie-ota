@@ -62,7 +62,7 @@
     <td><select name="device">
     	<option value="-" selected>Select device...</option>
 %for device in sorted(db):
-  <option value="{{device}}">{{device}} ({{db[device]['fwname']}} @ {{db[device]['fwversion']}})</option>
+  <option value="{{device}}">{{device}} ({{db[device].get('fwname', "")}} @ {{db[device].get('fwversion', "")}})</option>
 %end
     </select></td></tr>
     <tr><td>Firmware:</td>

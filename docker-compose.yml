@@ -1,0 +1,9 @@
+homie:
+  # build: .
+  image: valentinvieriu/homie
+  volumes:
+  - /home/pirate/firmwares:/app/firmwares
+  restart: always
+  ports:
+  - "9080:9080"
+

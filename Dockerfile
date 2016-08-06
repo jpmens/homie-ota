@@ -1,7 +1,7 @@
 
-FROM alpine:latest
+# FROM alpine:latest
 # If you want to build this for Raspberry Pi, please use the next image
-# FROM hypriot/rpi-alpine-scratch
+FROM hypriot/rpi-alpine-scratch:v3.4
 # Adds testing package to repositories
 # Install needed packages. Notes:
 #   * build-base: used so we include the basic development packages (gcc)

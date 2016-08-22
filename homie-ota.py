@@ -415,7 +415,11 @@ def on_connect(mosq, userdata, rc):
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
 
 def on_sensor(mosq, userdata, msg):
-    logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
+    if msg.topic.endswith("$ota/payload"):
+        logging.info("Received OTA payload from %s" % msg.topic)
+        return
+    else:
+        logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
 
     try:
         t = str(msg.topic)

@@ -465,7 +465,7 @@ def on_disconnect(mosq, userdata, rc):
        '5' : 'Connection Refused: not authorized',
     }
     reason = reasons.get(rc, "code=%s" % rc)
-    logging.debug("Disconnected: ", reason)
+    logging.debug("Disconnected: %s", reason)
 
 def on_log(mosq, userdata, level, string):
     logging.debug(string)

@@ -284,7 +284,9 @@ def update():
         for fwdata in scan_firmware().values():
          if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
              fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
-        mqttc.publish(topic + "/payload", payload=fwbinary, qos=1, retain=True)
+
+        ota_topic = "%s/%s/$implementation/ota" % (MQTT_SENSOR_PREFIX, device)
+        mqttc.publish(ota_topic + "/payload", payload=fwbinary, qos=1, retain=True)
     except:
         pass
 
@@ -418,6 +420,8 @@ def on_sensor(mosq, userdata, msg):
     if msg.topic.endswith("$ota/payload"):
         logging.info("Received OTA payload from %s" % msg.topic)
         return
+    elif msg.topic.endswith("$fw/name") or msg.topic.endswith("$fw/version"):
+        logging.debug("FW message %s %s" % (msg.topic, str(msg.payload)))
     else:
         logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
 
@@ -425,6 +429,14 @@ def on_sensor(mosq, userdata, msg):
         t = str(msg.topic)
         t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
         device, key, subkey = t.split('/')
+
+        if key=="$fw":
+            if subkey == "name":
+                db[device]["fwname"] = str(msg.payload)
+            if subkey == "version":
+                db[device]["fwversion"] = str(msg.payload)
+            return
+
 
         subtopic = "%s/%s" % (key, subkey)
         # print "DATA", device, subtopic, msg.payload
@@ -465,7 +477,7 @@ def on_disconnect(mosq, userdata, rc):
        '5' : 'Connection Refused: not authorized',
     }
     reason = reasons.get(rc, "code=%s" % rc)
-    logging.debug("Disconnected: ", reason)
+    logging.debug("Disconnected: %s", reason)
 
 def on_log(mosq, userdata, level, string):
     logging.debug(string)

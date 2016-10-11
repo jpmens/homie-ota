@@ -279,18 +279,20 @@ def update():
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
     payload = generate_ota_payload(firmware)
 
-    try:
-        (fwname, fwversion) = firmware.split('@')
-        for fwdata in scan_firmware().values():
-         if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
-             fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
+    # we are dealing with a homie 2.0 device
+    if device in db and 'homie' in db[device]:
+        try:
+            (fwname, fwversion) = firmware.split('@')
+            for fwdata in scan_firmware().values():
+                if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
+                    fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
 
-        ota_topic = "%s/%s/$implementation/ota" % (MQTT_SENSOR_PREFIX, device)
-        mqttc.publish(ota_topic + "/payload", payload=fwbinary, qos=1, retain=True)
-    except:
-        pass
+            ota_topic = "%s/%s/$implementation/ota" % (MQTT_SENSOR_PREFIX, device)
+            mqttc.publish(ota_topic + "/payload", payload=fwbinary, qos=1, retain=True)
+        except:
+            pass
 
-    (res, mid) =  mqttc.publish(topic, payload=payload, qos=1, retain=False)
+    (res, mid) = mqttc.publish(topic, payload=payload, qos=1, retain=False)
 
     info = "OTA request sent to device %s for update to %s" % (device, firmware)
     logging.info(info)
@@ -430,13 +432,16 @@ def on_sensor(mosq, userdata, msg):
         t = t[len(MQTT_SENSOR_PREFIX) + 1:]      # remove MQTT_SENSOR_PREFIX/ from begining of topic
         device, key, subkey = t.split('/')
 
-        if key=="$fw":
+        if key == "$fw":
             if subkey == "name":
                 db[device]["fwname"] = str(msg.payload)
             if subkey == "version":
                 db[device]["fwversion"] = str(msg.payload)
             return
 
+        # Version of the Homie convention the device conforms to
+        if key == "$homie":
+            db[device]["homie"] = str(msg.payload)
 
         subtopic = "%s/%s" % (key, subkey)
         # print "DATA", device, subtopic, msg.payload

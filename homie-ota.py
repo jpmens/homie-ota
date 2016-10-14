@@ -277,7 +277,6 @@ def update():
         return "OTA request aborted; no firmware chosen"
 
     topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-    payload = generate_ota_payload(firmware)
 
     # we are dealing with a homie 2.0 device
     if device in db and 'homie' in db[device]:
@@ -291,6 +290,9 @@ def update():
             mqttc.publish(ota_topic + "/payload", payload=fwbinary, qos=1, retain=True)
         except:
             pass
+        payload = fwversion
+    else:
+        payload = generate_ota_payload(firmware)
 
     (res, mid) = mqttc.publish(topic, payload=payload, qos=1, retain=False)
 

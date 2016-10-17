@@ -311,7 +311,7 @@ def delete_device(device_id):
     time.sleep(4)
 
     mqttc.message_callback_remove(topics)
-    info = "Deleted topics for %s" % (device)
+    info = "Deleted topics for %s" % (device_id)
     logging.info(info)
 
     return info

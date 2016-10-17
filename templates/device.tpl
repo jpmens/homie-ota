@@ -3,7 +3,7 @@
 <head>
   <title>Homie device - {{device}}</title>
   <meta http-equiv="refresh" content="60" />
-
+  <script type="text/javascript" src="/jquery.min.js"></script>
   <link rel="stylesheet" href="/styles.css">
   </head>
 <body>

@@ -447,7 +447,7 @@ def on_delete_message(mosq, userdata, msg):
     if len(msg.payload) == 0:
         return
     # Publish a retain message of zero bytes.
-    mqttc.publish(msg.topic, payload='', qos=1, retain=True)
+    mqttc.publish(msg.topic, payload='', qos=0, retain=True)
 
 def on_sensor(mosq, userdata, msg):
     if msg.topic.endswith("$ota/payload"):

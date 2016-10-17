@@ -304,13 +304,17 @@ def update():
 @route('/device/<device_id>', method='DELETE')
 def delete_device(device_id):
     topics = "%s/%s/+/+" % (MQTT_SENSOR_PREFIX, device_id)
+    mqttc.loop_stop()
     mqttc.message_callback_add(topics, on_delete_message)
+    mqttc.loop_start()
     logging.info("Starting delete of topics for device %s" % (device_id))
 
-    # Give the callback 4 seconds before returning
-    time.sleep(4)
+    # Give the callback 10 seconds before returning
+    time.sleep(10)
 
+    mqttc.loop_stop()
     mqttc.message_callback_remove(topics)
+    mqttc.loop_start()
     info = "Deleted topics for %s" % (device_id)
     logging.info(info)
 

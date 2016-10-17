@@ -45,7 +45,7 @@
 <script type="application/javascript">
 $('.delete').bind('click', function (e){
   e.preventDefault();
-  if (confirm("Are you sure to delete the file?")) {
+  if (confirm("Are you sure to delete this device?")) {
     $.ajax({
       url: $(this).data('delete-url'),
       type: 'DELETE',

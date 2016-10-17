@@ -50,12 +50,12 @@ $('.delete a').bind('click', function (e){
   var elem = $(this);
   if (confirm("Are you sure to delete the file?")) {
     $.ajax({
-      url: $(this).data('file'),
+      url: elem.data('file'),
       type: 'DELETE',
       async: true
     })
     .done(function() {
-      $(elem).closest('tr').remove();
+      elem.closest('tr').remove();
     })
     .fail(function(e) {
       alert('Error: ' + e.statusText);

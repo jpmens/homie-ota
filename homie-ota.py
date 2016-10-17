@@ -301,6 +301,29 @@ def update():
 
     return info
 
+# Handle deleting a device from the mqtt broker, and the local db.
+@route('/device/<device_id>', method='DELETE')
+def delete_device(device_id):
+    topics = "%s/%s/#" % (MQTT_SENSOR_PREFIX, device_id)
+    mqttc.loop_stop()
+    mqttc.subscribe(topics, 0)
+    mqttc.message_callback_add(topics, on_delete_message)
+    mqttc.loop_start()
+    logging.info("Starting delete of topics for device %s" % (device_id))
+
+    # Give the callback time before returning
+    time.sleep(2)
+
+    mqttc.loop_stop()
+    mqttc.message_callback_remove(topics)
+    mqttc.unsubscribe(topics)
+    mqttc.loop_start()
+    info = "Deleted topics for %s" % (device_id)
+    logging.info(info)
+    del db[device_id]
+
+    return info
+
 def scan_firmware():
     fw = {}
     for fw_file in os.listdir(OTA_FIRMWARE_ROOT):
@@ -420,6 +443,14 @@ def on_connect(mosq, userdata, rc):
     mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
 
+# on_delete_message handles deleting the topic the messages was received on.
+def on_delete_message(mosq, userdata, msg):
+    logging.debug("Received delete callback for topic '%s'" % msg.topic)
+    if len(msg.payload) == 0:
+        return
+    # Publish a retain message of zero bytes.
+    mqttc.publish(msg.topic, payload='', qos=1, retain=True)
+
 def on_sensor(mosq, userdata, msg):
     if msg.topic.endswith("$ota/payload"):
         logging.info("Received OTA payload from %s" % msg.topic)
@@ -451,7 +482,7 @@ def on_sensor(mosq, userdata, msg):
         # Homie 2.0 uptime
         if subtopic == "$uptime/value":
             db[device]["human_uptime"] = uptime(msg.payload)
-        
+
         if device not in sensors:
             sensors[device] = {}
         sensors[device][subtopic] = msg.payload

@@ -3,14 +3,14 @@
 <head>
   <title>Homie device - {{device}}</title>
   <meta http-equiv="refresh" content="60" />
-
+  <script type="text/javascript" src="/jquery.min.js"></script>
   <link rel="stylesheet" href="/styles.css">
   </head>
 <body>
 <h2>Homie device details</h2>
 
 <p>
-[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>]
+[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>] [<a class="delete" data-delete-url="/device/{{device}}" href="#">Delete</a>]
 </p>
 
 <h3>Details for device {{device}}</h3>
@@ -42,5 +42,25 @@
 </tr>
 %end
 </table>
+<script type="application/javascript">
+$('.delete').bind('click', function (e){
+  e.preventDefault();
+  if (confirm("Are you sure to delete this device?")) {
+    $.ajax({
+      url: $(this).data('delete-url'),
+      type: 'DELETE',
+      async: true
+    })
+    .done(function() {
+      alert('Deleted device');
+      window.location.href = '/';
+    })
+    .fail(function(e) {
+      alert('Error: ' + e.statusText);
+    })
+  }
+  return false;
+})
+</script>
 </body>
 </html>

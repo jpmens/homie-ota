@@ -303,15 +303,15 @@ def update():
 
 @route('/device/<device_id>', method='DELETE')
 def delete_device(device_id):
-    topics = "%s/%s/+/+" % (MQTT_SENSOR_PREFIX, device_id)
+    topics = "%s/%s/#" % (MQTT_SENSOR_PREFIX, device_id)
     mqttc.loop_stop()
     mqttc.subscribe(topics, 0)
     mqttc.message_callback_add(topics, on_delete_message)
     mqttc.loop_start()
     logging.info("Starting delete of topics for device %s" % (device_id))
 
-    # Give the callback 10 seconds before returning
-    time.sleep(10)
+    # Give the callback 4 seconds before returning
+    time.sleep(4)
 
     mqttc.loop_stop()
     mqttc.message_callback_remove(topics)
@@ -447,7 +447,7 @@ def on_delete_message(mosq, userdata, msg):
     if len(msg.payload) == 0:
         return
     # Publish a retain message of zero bytes.
-    mqttc.publish(msg.topic, payload='', qos=0, retain=True)
+    mqttc.publish(msg.topic, payload='', qos=1, retain=True)
 
 def on_sensor(mosq, userdata, msg):
     if msg.topic.endswith("$ota/payload"):

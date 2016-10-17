@@ -5,6 +5,7 @@ OTA_HOST		= 0.0.0.0
 OTA_PORT		= 9080
 OTA_ENDPOINT		= /ota
 OTA_FIRMWARE_ROOT	= ./firmwares
+# OTA_BASE_URL		= /homie-ota
 
 [mqtt]
 MQTT_HOST		= localhost

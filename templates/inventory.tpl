@@ -4,16 +4,16 @@
   <title>Homie devices</title>
   <meta http-equiv="refresh" content="60" />
 
-  <link rel="stylesheet" href="styles.css">
-  <script type="text/javascript" src="jquery.min.js"></script>
+  <link rel="stylesheet" href="{{base_url}}/styles.css">
+  <script type="text/javascript" src="{{base_url}}/jquery.min.js"></script>
   <!-- https://github.com/lastdates/pBar -->
-  <script type="text/javascript" src="jquery.pBar.min.js"></script>
+  <script type="text/javascript" src="{{base_url}}/jquery.pBar.min.js"></script>
 </head>
 <body>
 <h2>Homie device inventory</h2>
 
 <p>
-[<a href="/firmware">Homie device firmware</a>] [<a href="/log">Log</a>]
+[<a href="{{base_url}}/firmware">Homie device firmware</a>] [<a href="{{base_url}}/log">Log</a>]
 </p>
 
 <h3>Registered devices</h3>
@@ -25,7 +25,7 @@
 </thead>
 %for device in sorted(db):
 <tr>
-   <td class="online"><img src="/{{db[device].get('online', 'false')}}.png"
+   <td class="online"><img src="{{base_url}}/{{db[device].get('online', 'false')}}.png"
    		      alt="{{db[device].get('online', 'false')}}" /></td>
 
 %if db[device].get('online', 'false') == 'true':
@@ -33,7 +33,7 @@
 %else:
    <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
 %end
-   <td class="device"><a href="/device/{{device}}">{{device}}</a></td>
+   <td class="device"><a href="{{base_url}}/device/{{device}}">{{device}}</a></td>
 
 %for item in ['localip', 'human_uptime']:
   %if item in db[device] and db[device].get('online', 'false') == 'true':
@@ -56,7 +56,7 @@
 </table>
 
 <h3>Schedule OTA update</h3>
-<form action="/update" method="post" enctype="multipart/form-data">
+<form action="{{base_url}}/update" method="post" enctype="multipart/form-data">
   <table border="0">
     <tr><td>Device:</td>
     <td><select name="device">

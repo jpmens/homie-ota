@@ -305,6 +305,7 @@ def update():
 def delete_device(device_id):
     topics = "%s/%s/+/+" % (MQTT_SENSOR_PREFIX, device_id)
     mqttc.loop_stop()
+    mqttc.subscribe(topics, 0)
     mqttc.message_callback_add(topics, on_delete_message)
     mqttc.loop_start()
     logging.info("Starting delete of topics for device %s" % (device_id))
@@ -314,6 +315,7 @@ def delete_device(device_id):
 
     mqttc.loop_stop()
     mqttc.message_callback_remove(topics)
+    mqttc.unsubscribe(topics)
     mqttc.loop_start()
     info = "Deleted topics for %s" % (device_id)
     logging.info(info)

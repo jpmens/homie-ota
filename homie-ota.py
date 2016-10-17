@@ -444,7 +444,7 @@ def on_connect(mosq, userdata, rc):
 # on_delete_message handles deleting the topic the messages was received on.
 def on_delete_message(mosq, userdata, msg):
     logging.debug("Received delete callback for topic '%s'" % msg.topic)
-    if len(msg.topic) == 0:
+    if len(msg.payload) == 0:
         return
     # Publish a retain message of zero bytes.
     mqttc.publish(msg.topic, payload='', qos=1, retain=True)

@@ -10,7 +10,7 @@
 <h2>Homie device details</h2>
 
 <p>
-[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>] [<a class="delete" data-delete-url="/device/{{device}}">Delete</a>]
+[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>] [<a class="delete" data-delete-url="/device/{{device}}" href="#">Delete</a>]
 </p>
 
 <h3>Details for device {{device}}</h3>
@@ -45,7 +45,6 @@
 <script type="application/javascript">
 $('.delete').bind('click', function (e){
   e.preventDefault();
-  var elem = $(this);
   if (confirm("Are you sure to delete the file?")) {
     $.ajax({
       url: $(this).data('delete-url'),

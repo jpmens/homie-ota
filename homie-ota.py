@@ -301,7 +301,7 @@ def update():
 
     return info
 
-@route('/devices/<device_id>', method='DELETE')
+@route('/device/<device_id>', method='DELETE')
 def delete_device(device_id):
     topics = "%s/%s/+/+" % (MQTT_SENSOR_PREFIX, device_id)
     mqttc.message_callback_add(topics, on_delete_message)
@@ -438,7 +438,7 @@ def on_connect(mosq, userdata, rc):
 # on_delete_message handles deleting the topic the messages was received on.
 def on_delete_message(mosq, userdata, msg):
     logging.debug("Received delete callback for topic '%s'" % msg.topic)
-    if len(msg.topic) == 0
+    if len(msg.topic) == 0:
         return
     # Publish a retain message of zero bytes.
     mqttc.publish(mst.topic, payload='', qos=1, retain=True)
@@ -474,7 +474,7 @@ def on_sensor(mosq, userdata, msg):
         # Homie 2.0 uptime
         if subtopic == "$uptime/value":
             db[device]["human_uptime"] = uptime(msg.payload)
-        
+
         if device not in sensors:
             sensors[device] = {}
         sensors[device][subtopic] = msg.payload

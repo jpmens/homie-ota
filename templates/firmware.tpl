@@ -3,14 +3,14 @@
 <head>
   <title>Homie firmware</title>
   <meta http-equiv="refresh" content="60" />
-  <script type="text/javascript" src="jquery.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <script type="text/javascript" src="{{base_url}}/jquery.min.js"></script>
+  <link rel="stylesheet" href="{{base_url}}/styles.css">
   </head>
 <body>
 <h2>Homie device firmware</h2>
 
 <p>
-[<a href="/">Homie device inventory</a>] [<a href="/log">Log</a>]
+[<a href="{{base_url}}/">Homie device inventory</a>] [<a href="{{base_url}}/log">Log</a>]
 </p>
 
 <h3>Existing Firmware</h3>
@@ -29,7 +29,7 @@
     <td></td>
   %end
 %end
-   <td class="delete"><a href="#delete" data-file="/firmware/{{fw[path]["filename"]}}">delete</a></td>
+   <td class="delete"><a href="#delete" data-file="{{base_url}}/firmware/{{fw[path]["filename"]}}">delete</a></td>
 </tr>
 %end
 </table>
@@ -37,7 +37,7 @@
 <br>
 
 <h3>Firmware upload</h3>
-<form action="/upload" method="post" enctype="multipart/form-data">
+<form action="{{base_url}}/upload" method="post" enctype="multipart/form-data">
   <table border="0">
     <tr><td>Firmware Binary:</td><td><input type="file" name="upload"></td></tr>
     <tr><td>Description:</td><td><input type="text" name="description"></td></tr>

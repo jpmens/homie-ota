@@ -41,6 +41,11 @@ OTA_HOST = config.get("global", "OTA_HOST")
 OTA_PORT = config.getint("global", "OTA_PORT")
 OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
 OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
+OTA_BASE_URL = ""
+try:
+    OTA_BASE_URL = config.get("global", "OTA_BASE_URL")
+except:
+    pass
 
 MQTT_HOST = config.get("mqtt", "MQTT_HOST")
 MQTT_PORT = config.getint("mqtt", "MQTT_PORT")
@@ -150,12 +155,12 @@ def blurb():
 @get('/firmware')
 def firmware():
     fw = scan_firmware()
-    return template('templates/firmware', fw=fw)
+    return template('templates/firmware', base_url=OTA_BASE_URL, fw=fw)
 
 @get('/')
 def inventory():
     fw = scan_firmware()
-    return template('templates/inventory', db=db, fw=fw)
+    return template('templates/inventory', base_url=OTA_BASE_URL, db=db, fw=fw)
 
 @get('/<filename:re:.*\.css>')
 def stylesheets(filename):
@@ -172,7 +177,7 @@ def javascript(filename):
 @get('/log')
 def showlog():
     logdata = open(LOGFILE, "r").read()
-    return template('templates/log', data=logdata)
+    return template('templates/log', base_url=OTA_BASE_URL, data=logdata)
 
 @get('/device/<device>')
 def showdevice(device):
@@ -185,7 +190,7 @@ def showdevice(device):
     if device in sensors:
         sensor = sensors[device]
 
-    return template('templates/device', device=device, data=data, sensor=sensor)
+    return template('templates/device', base_url=OTA_BASE_URL, device=device, data=data, sensor=sensor)
 
 @route('/firmware/<fw_file>', method='DELETE')
 def delete(fw_file):

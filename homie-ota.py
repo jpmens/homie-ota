@@ -321,6 +321,7 @@ def delete_device(device_id):
     info = "Deleted topics for %s" % (device_id)
     logging.info(info)
     del db[device_id]
+    del sensors[device_id]
 
     return info
 

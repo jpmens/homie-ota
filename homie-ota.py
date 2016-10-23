@@ -291,15 +291,15 @@ def update():
                 if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
                     fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
 
-            ota_topic = "%s/%s/$implementation/ota" % (MQTT_SENSOR_PREFIX, device)
-            mqttc.publish(ota_topic + "/firmware", payload=fwbinary, qos=1, retain=True)
+            mqttc.publish(topic, payload=fwversion, qos=1, retain=False)
+
+            topic = "%s/%s/$implementation/ota/firmware" % (MQTT_SENSOR_PREFIX, device)
+            mqttc.publish(topic, payload=fwbinary, qos=1, retain=False)
         except:
             pass
-        payload = fwversion
     else:
         payload = generate_ota_payload(firmware)
-
-    (res, mid) = mqttc.publish(topic, payload=payload, qos=1, retain=False)
+        mqttc.publish(topic, payload=payload, qos=1, retain=False)
 
     info = "OTA request sent to device %s for update to %s" % (device, firmware)
     logging.info(info)

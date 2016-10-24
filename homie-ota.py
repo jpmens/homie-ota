@@ -20,6 +20,7 @@ import json
 import fileinput
 import time
 import re
+import base64
 
 
 # Script name (without extension) used for config/logfile names
@@ -44,6 +45,11 @@ OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
 OTA_BASE_URL = ""
 try:
     OTA_BASE_URL = config.get("global", "OTA_BASE_URL")
+except:
+    pass
+OTA_FIRMWARE_BASE64 = True
+try:
+    OTA_FIRMWARE_BASE64 = config.get("global", "OTA_FIRMWARE_BASE64")
 except:
     pass
 
@@ -289,12 +295,16 @@ def update():
             (fwname, fwversion) = firmware.split('@')
             for fwdata in scan_firmware().values():
                 if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
-                    fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
+                    fwread = open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read()
+                    if OTA_FIRMWARE_BASE64:
+                        fwpublish = base64.b64encode(fwread)
+                    else:
+                        fwpublish = bytearray(fwread)
 
             mqttc.publish(topic, payload=fwversion, qos=1, retain=False)
 
             topic = "%s/%s/$implementation/ota/firmware" % (MQTT_SENSOR_PREFIX, device)
-            mqttc.publish(topic, payload=fwbinary, qos=1, retain=False)
+            mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
         except:
             pass
     else:

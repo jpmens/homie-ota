@@ -35,10 +35,10 @@
   <th>key</th><th>value</th>
 </tr>
 </thead>
-%for item in sensor:
+%for key in sensor_keys:
 <tr>
-  <td class="detailkey">{{item}}</td>
-  <td class="detailvalue">{{ sensor[item] }}</td>
+  <td class="detailkey">{{key}}</td>
+  <td class="detailvalue">{{ sensor[key] }}</td>
 </tr>
 %end
 </table>

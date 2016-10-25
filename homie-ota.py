@@ -185,7 +185,7 @@ def showdevice(device):
     if device in sensors:
         sensor = sensors[device]
 
-    return template('templates/device', device=device, data=data, sensor=sensor, sensor_keys=sorted(sensor))
+    return template('templates/device', device=device, data=data, sensor=sensor)
 
 @route('/firmware/<fw_file>', method='DELETE')
 def delete(fw_file):

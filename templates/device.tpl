@@ -20,7 +20,7 @@
   <th>key</th><th>value</th>
 </tr>
 </thead>
-%for item in data:
+%for item in sorted(data):
 <tr>
   <td class="detailkey">{{item}}</td>
   <td class="detailvalue">{{ data[item] }}</td>
@@ -35,10 +35,10 @@
   <th>key</th><th>value</th>
 </tr>
 </thead>
-%for item in sensor:
+%for key in sorted(sensor):
 <tr>
-  <td class="detailkey">{{item}}</td>
-  <td class="detailvalue">{{ sensor[item] }}</td>
+  <td class="detailkey">{{key}}</td>
+  <td class="detailvalue">{{ sensor[key] }}</td>
 </tr>
 %end
 </table>

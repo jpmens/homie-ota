@@ -20,6 +20,7 @@ import json
 import fileinput
 import time
 import re
+import base64
 
 
 # Script name (without extension) used for config/logfile names
@@ -41,6 +42,16 @@ OTA_HOST = config.get("global", "OTA_HOST")
 OTA_PORT = config.getint("global", "OTA_PORT")
 OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
 OTA_FIRMWARE_ROOT = config.get("global", "OTA_FIRMWARE_ROOT")
+OTA_BASE_URL = ""
+try:
+    OTA_BASE_URL = config.get("global", "OTA_BASE_URL")
+except:
+    pass
+OTA_FIRMWARE_BASE64 = True
+try:
+    OTA_FIRMWARE_BASE64 = config.get("global", "OTA_FIRMWARE_BASE64")
+except:
+    pass
 
 MQTT_HOST = config.get("mqtt", "MQTT_HOST")
 MQTT_PORT = config.getint("mqtt", "MQTT_PORT")
@@ -150,12 +161,12 @@ def blurb():
 @get('/firmware')
 def firmware():
     fw = scan_firmware()
-    return template('templates/firmware', fw=fw)
+    return template('templates/firmware', base_url=OTA_BASE_URL, fw=fw)
 
 @get('/')
 def inventory():
     fw = scan_firmware()
-    return template('templates/inventory', db=db, fw=fw)
+    return template('templates/inventory', base_url=OTA_BASE_URL, db=db, fw=fw)
 
 @get('/<filename:re:.*\.css>')
 def stylesheets(filename):
@@ -172,7 +183,7 @@ def javascript(filename):
 @get('/log')
 def showlog():
     logdata = open(LOGFILE, "r").read()
-    return template('templates/log', data=logdata)
+    return template('templates/log', base_url=OTA_BASE_URL, data=logdata)
 
 @get('/device/<device>')
 def showdevice(device):
@@ -185,7 +196,7 @@ def showdevice(device):
     if device in sensors:
         sensor = sensors[device]
 
-    return template('templates/device', device=device, data=data, sensor=sensor)
+    return template('templates/device', base_url=OTA_BASE_URL, device=device, data=data, sensor=sensor)
 
 @route('/firmware/<fw_file>', method='DELETE')
 def delete(fw_file):
@@ -284,17 +295,21 @@ def update():
             (fwname, fwversion) = firmware.split('@')
             for fwdata in scan_firmware().values():
                 if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
-                    fwbinary = bytearray(open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read())
+                    fwread = open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read()
+                    if OTA_FIRMWARE_BASE64:
+                        fwpublish = base64.b64encode(fwread)
+                    else:
+                        fwpublish = bytearray(fwread)
 
-            ota_topic = "%s/%s/$implementation/ota" % (MQTT_SENSOR_PREFIX, device)
-            mqttc.publish(ota_topic + "/payload", payload=fwbinary, qos=1, retain=True)
+            mqttc.publish(topic, payload=fwversion, qos=1, retain=False)
+
+            topic = "%s/%s/$implementation/ota/firmware" % (MQTT_SENSOR_PREFIX, device)
+            mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
         except:
             pass
-        payload = fwversion
     else:
         payload = generate_ota_payload(firmware)
-
-    (res, mid) = mqttc.publish(topic, payload=payload, qos=1, retain=False)
+        mqttc.publish(topic, payload=payload, qos=1, retain=False)
 
     info = "OTA request sent to device %s for update to %s" % (device, firmware)
     logging.info(info)

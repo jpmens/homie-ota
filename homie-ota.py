@@ -496,8 +496,14 @@ def on_sensor(mosq, userdata, msg):
         # print "DATA", device, subtopic, msg.payload
 
         # Homie 2.0 uptime
-        if subtopic == "$uptime/value":
+        if (subtopic == "$uptime/value") or (subtopic == "$stats/uptime"):
             db[device]["human_uptime"] = uptime(msg.payload)
+            return
+
+        if key == "$stats":
+            if subkey == "signal":
+                db[device]["signal"] = str(msg.payload)
+            return
 
         if device not in sensors:
             sensors[device] = {}

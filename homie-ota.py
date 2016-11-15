@@ -287,8 +287,6 @@ def update():
     if firmware == '-':
         return "OTA request aborted; no firmware chosen"
 
-    topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
-
     # we are dealing with a homie 2.0 device
     if device in db and 'homie' in db[device]:
         try:
@@ -301,13 +299,19 @@ def update():
                     else:
                         fwpublish = bytearray(fwread)
 
-            mqttc.publish(topic, payload=fwversion, qos=1, retain=False)
+            m = hashlib.md5()
+            m.update(fwread)
+            fwchecksum = m.hexdigest()
+
+            topic = "%s/%s/$implementation/ota/checksum" % (MQTT_SENSOR_PREFIX, device)
+            mqttc.publish(topic, payload=fwchecksum, qos=1, retain=False)
 
             topic = "%s/%s/$implementation/ota/firmware" % (MQTT_SENSOR_PREFIX, device)
             mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
         except:
             pass
     else:
+        topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
         payload = generate_ota_payload(firmware)
         mqttc.publish(topic, payload=payload, qos=1, retain=False)
 

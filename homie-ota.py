@@ -49,7 +49,7 @@ except:
     pass
 OTA_FIRMWARE_BASE64 = True
 try:
-    OTA_FIRMWARE_BASE64 = config.get("global", "OTA_FIRMWARE_BASE64")
+    OTA_FIRMWARE_BASE64 = config.getboolean("global", "OTA_FIRMWARE_BASE64")
 except:
     pass
 

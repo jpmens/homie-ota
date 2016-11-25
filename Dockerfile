@@ -1,4 +1,3 @@
-
 # FROM alpine:latest
 # If you want to build this for Raspberry Pi, please use the next image
 FROM hypriot/rpi-alpine-scratch:v3.4

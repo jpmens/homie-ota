@@ -289,6 +289,7 @@ def update():
 
     # we are dealing with a homie 2.0 device
     if device in db and 'homie' in db[device]:
+        logging.debug("Homie 2.0 device")
         try:
             (fwname, fwversion) = firmware.split('@')
             for fwdata in scan_firmware().values():
@@ -311,6 +312,7 @@ def update():
         except:
             pass
     else:
+        logging.debug("Homie 1.5 device")
         topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
         payload = generate_ota_payload(firmware)
         mqttc.publish(topic, payload=payload, qos=1, retain=False)
@@ -382,30 +384,33 @@ def scan_firmware():
     return fw
 
 
-# X-Esp8266-Ap-Mac = 1A:FE:34:CF:3A:07
-# X-Esp8266-Sta-Mac = 18:FE:34:CF:3A:07
-# X-Esp8266-Free-Space = 684032
-# X-Esp8266-Chip-Size = 4194304
-# X-Esp8266-Mode = sketch
-# Content-Length =
-# X-Esp8266-Sdk-Version = 1.5.2(7eee54f4)
-# Host = 192.168.1.130
-# X-Esp8266-Sketch-Size = 360872
-# Connection = close
-# User-Agent = ESP8266-http-Update
-# X-Esp8266-Version = cf3a07e0=h-sensor=1.0.1=1.0.2
-# Content-Type = text/plain
+# header X-Esp8266-Ap-Mac = 1A:FE:34:D4:06:55
+# header X-Esp8266-Sketch-Size = 367776
+# header X-Esp8266-Sta-Mac = 18:FE:34:D4:06:55
+# header X-Esp8266-Free-Space = 679936
+# header X-Esp8266-Chip-Size = 4194304
+# header X-Esp8266-Mode = sketch
+# header Content-Length =
+# header X-Esp8266-Sdk-Version = 1.5.3(aec24ac9)
+# header Host = 192.168.1.130:9080
+# header Connection = close
+# header User-Agent = ESP8266-http-Update
+# header X-Esp8266-Version = d40655e0=button-homie@1.0.0->a75ebc7c7f@1.0.1
+# header Content-Type = text/plain
 
 @get(OTA_ENDPOINT)
 def ota():
 
     headers = request.headers
     for k in headers:
-        logging.debug(k + ' = ' + headers[k])
+        logging.debug("header " + k + ' = ' + headers[k])
 
     try:
-        device, firmware_name, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
+        # X-Esp8266-Version = d40655e0=button-homie@1.0.0->a75ebc7c7f@1.0.1
+        device, f = headers.get('X-Esp8266-Version', None).split('=')
+        firmware_name, have_version, want_version = f.split('@')
     except:
+        raise
         logging.warn("Can't find X-Esp8266-Version in headers; returning 403")
         return HTTPResponse(status=403, body="Not permitted")
 

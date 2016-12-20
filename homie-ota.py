@@ -406,9 +406,13 @@ def ota():
         logging.debug("header " + k + ' = ' + headers[k])
 
     try:
-        # X-Esp8266-Version = d40655e0=button-homie@1.0.0->a75ebc7c7f@1.0.1
-        device, f = headers.get('X-Esp8266-Version', None).split('=')
-        firmware_name, have_version, want_version = f.split('@')
+        if '->' in headers.get('X-Esp8266-Version', None):
+            # X-Esp8266-Version = d40655e0=button-homie@1.0.0->a75ebc7c7f@1.0.1
+            device, f = headers.get('X-Esp8266-Version', None).split('=')
+            firmware_name, have_version, want_version = f.split('@')
+        else:
+            # X-Esp8266-Version = cf3a07e0=h-sensor=1.0.1=1.0.2
+            device, firmware_name, have_version, want_version = headers.get('X-Esp8266-Version', None).split('=')
     except:
         raise
         logging.warn("Can't find X-Esp8266-Version in headers; returning 403")

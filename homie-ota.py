@@ -355,7 +355,7 @@ def scan_firmware():
         if not fw_file.endswith('.bin'):
             continue
 
-        regex = re.compile("(.*)\-(\d+\.\d+\.\d+)\.bin")
+        regex = re.compile("(.*)\-((\d+\.\d+\.\d+\.\d+)|(\d+\.\d+.\d+))\.bin")
         regex_result = regex.search(fw_file)
 
         if not regex_result:

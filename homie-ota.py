@@ -10,6 +10,7 @@ from bottle import get, route, request, run, static_file, HTTPResponse, template
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
+import signal
 import sys
 import hashlib
 import logging
@@ -113,12 +114,16 @@ def generate_ota_payload(firmware):
     # ota payload is <hash>@<version>
     return "%s@%s" % (fw_hash, fw_version)
 
+def handleterm(signum, frame):
+    logging.info("SIGTERM received")
+    sys.exit(0)
+
 def exitus():
     db.sync()
     db.close()
     sensors.sync()
     sensors.close()
-    logging.debug("CIAO")
+    logging.info("CIAO")
 
 def uptime(seconds=0):
     MINUTE = 60
@@ -586,6 +591,7 @@ if __name__ == '__main__':
 
     mqttc.loop_start()
 
+    signal.signal(signal.SIGTERM, handleterm)
     atexit.register(exitus)
 
     try:

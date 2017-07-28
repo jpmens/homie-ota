@@ -473,7 +473,7 @@ def ota():
     return static_file(fw_file, root=OTA_FIRMWARE_ROOT)
 
 
-def on_connect(mosq, userdata, rc):
+def on_connect(mosq, userdata, flags, rc):
     mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
 

@@ -1,0 +1,10 @@
+image: ivdata/homie-ota:latest
+manifests:
+  - image: ivdata/homie-ota:amd64
+    platform:
+      architecture: amd64
+      os: linux
+  - image: ivdata/homie-ota:armhf
+    platform:
+      architecture: arm
+      os: linux

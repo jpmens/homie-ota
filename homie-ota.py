@@ -6,7 +6,7 @@ __copyright__ = 'Copyright 2016 Jan-Piet Mens'
 
 # wget http://bottlepy.org/bottle.py
 # ... or ... pip install bottle
-from bottle import get, route, request, run, static_file, HTTPResponse, template, abort
+from bottle import auth_basic, get, route, request, run, static_file, HTTPResponse, template, abort
 import paho.mqtt.client as paho   # pip install paho-mqtt
 import StringIO
 import os
@@ -53,7 +53,14 @@ try:
     OTA_FIRMWARE_BASE64 = config.getboolean("global", "OTA_FIRMWARE_BASE64")
 except:
     pass
-
+try:
+    HTTP_USER = config.get("global","HTTP_USER")
+except:
+    pass
+try:
+    HTTP_PASSWORD = config.get("global","HTTP_PASSWORD")
+except:
+    pass
 MQTT_HOST = config.get("mqtt", "MQTT_HOST")
 MQTT_PORT = config.getint("mqtt", "MQTT_PORT")
 MQTT_USERNAME = None
@@ -97,6 +104,16 @@ mqttc = paho.Client("%s-%d" % (APPNAME, os.getpid()), clean_session=True, userda
 # Persisted inventory store
 db = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'inventory.json'), 'c', format='json')
 sensors = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'sensors.json'), 'c', format='json')
+
+def check(user, pw):
+    # Check user/pw here and return True/False
+    if  user == HTTP_USER and pw == HTTP_PASSWORD:
+    	return True
+    else:
+	return False
+
+def conditional_decorator(condition, decorator):
+    return decorator if condition else lambda x: x
 
 def generate_ota_payload(firmware):
     # if no '@' then payload is just a version number
@@ -147,6 +164,7 @@ def uptime(seconds=0):
 
 
 @get('/blurb')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def blurb():
     text =  """Homie OTA server running.
     OTA endpoint is: http://{host}:{port}/{endpoint}
@@ -164,33 +182,40 @@ def blurb():
     return text
 
 @get('/firmware')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def firmware():
     fw = scan_firmware()
     return template('templates/firmware', base_url=OTA_BASE_URL, fw=fw)
 
 @get('/')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def inventory():
     fw = scan_firmware()
     return template('templates/inventory', base_url=OTA_BASE_URL, db=db, fw=fw)
 
 @get('/<filename:re:.*\.css>')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def stylesheets(filename):
     return static_file(filename, root='static/css')
 
 @get('/<filename:re:.*\.png>')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def png(filename):
     return static_file(filename, root='static/img')
 
 @get('/<filename:re:.*\.js>')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def javascript(filename):
     return static_file(filename, root='static/js')
 
 @get('/log')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def showlog():
     logdata = open(LOGFILE, "r").read()
     return template('templates/log', base_url=OTA_BASE_URL, data=logdata)
 
 @get('/device/<device>')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def showdevice(device):
 
     data = None
@@ -204,6 +229,7 @@ def showdevice(device):
     return template('templates/device', base_url=OTA_BASE_URL, device=device, data=data, sensor=sensor)
 
 @route('/firmware/<fw_file>', method='DELETE')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def delete(fw_file):
     fw_path = os.path.join(OTA_FIRMWARE_ROOT, fw_file)
 
@@ -228,6 +254,7 @@ def delete(fw_file):
     return resp
 
 @route('/upload', method='POST')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def upload():
     '''Accept an uploaded, compiled binary sketch and obtain the firmware's
        name and version from the magic described in
@@ -283,6 +310,7 @@ def upload():
     return "File is missing"
 
 @route('/update', method='POST')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def update():
     device = request.forms.get('device')
     firmware = request.forms.get('firmware')
@@ -329,6 +357,7 @@ def update():
 
 # Handle deleting a device from the mqtt broker, and the local db.
 @route('/device/<device_id>', method='DELETE')
+@conditional_decorator('HTTP_USER' in globals() and 'HTTP_PASSWORD' in globals(), auth_basic(check))
 def delete_device(device_id):
     topics = "%s/%s/#" % (MQTT_SENSOR_PREFIX, device_id)
     mqttc.loop_stop()

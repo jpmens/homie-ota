@@ -7,6 +7,8 @@ OTA_ENDPOINT		= /ota
 OTA_FIRMWARE_ROOT	= ./firmwares
 # OTA_BASE_URL		= /homie-ota
 # OTA_FIRMWARE_BASE64	= False
+# HTTP_USER		= user
+# HTTP_PASSWORD		= password
 
 [mqtt]
 MQTT_HOST		= localhost

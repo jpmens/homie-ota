@@ -58,6 +58,8 @@ $ curl -F upload=@lt.ino.d1_mini.bin \
 Firmware from lt.ino.d1_mini.bin uploaded as /path/to/firmwares/lt-2.0.0.bin
 ```
 
+If basic http authentication is enabled, add "-u username:password" to the curl command
+
 We do this directly from the sketch directory into which the _exported binary_ was written.
 
 

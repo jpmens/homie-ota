@@ -33,6 +33,9 @@ LOGFILE = os.getenv('LOGFILE', APPNAME + '.log')
 OTA_HOMIE_PAYLOAD_MAX_LENGTH = 16
 
 # Read the config file
+if not os.path.exists(INIFILE):
+	logging.error("Cannot open ini file %s." % (INIFILE))
+	sys.exit(2)
 config = ConfigParser.RawConfigParser()
 config.read(INIFILE)
 

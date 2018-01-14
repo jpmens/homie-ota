@@ -8,13 +8,11 @@ __copyright__ = 'Copyright 2016 Jan-Piet Mens'
 # ... or ... pip install bottle
 from bottle import auth_basic, get, route, request, run, static_file, HTTPResponse, template, abort
 import paho.mqtt.client as paho   # pip install paho-mqtt
-import StringIO
 import os
 import signal
 import sys
 import hashlib
 import logging
-import ConfigParser
 import atexit
 from persist import PersistentDict
 import json
@@ -23,6 +21,15 @@ import time
 import re
 import base64
 
+try:
+    import ConfigParser
+except ImportError:
+    import configparser
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 # Script name (without extension) used for config/logfile names
 APPNAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -34,9 +41,9 @@ OTA_HOMIE_PAYLOAD_MAX_LENGTH = 16
 
 # Read the config file
 if not os.path.exists(INIFILE):
-	logging.error("Cannot open ini file %s." % (INIFILE))
-	sys.exit(2)
-config = ConfigParser.RawConfigParser()
+    logging.error("Cannot open ini file %s." % (INIFILE))
+    sys.exit(2)
+config = configparser.RawConfigParser()
 config.read(INIFILE)
 
 # Use ConfigParser to pick out the settings
@@ -111,9 +118,9 @@ sensors = PersistentDict(os.path.join(OTA_FIRMWARE_ROOT, 'sensors.json'), 'c', f
 def check(user, pw):
     # Check user/pw here and return True/False
     if  user == HTTP_USER and pw == HTTP_PASSWORD:
-    	return True
+        return True
     else:
-	return False
+        return False
 
 def conditional_decorator(condition, decorator):
     return decorator if condition else lambda x: x
@@ -292,7 +299,7 @@ def upload():
             f = open(fw_file, "wb")
             f.write(firmware_binary)
             f.close()
-        except Exception, e:
+        except Exception as e:
             resp = "Cannot write %s: %s" % (fw_file, str(e))
             logging.info(resp)
             return resp
@@ -301,7 +308,7 @@ def upload():
             f = open(description_file, "wb")
             f.write(description)
             f.close()
-        except Exception, e:
+        except Exception as e:
             resp = "Cannot write description to file %s: %s" % (description_file, str(e))
             logging.info(resp)
             return resp
@@ -558,7 +565,7 @@ def on_sensor(mosq, userdata, msg):
         if device not in sensors:
             sensors[device] = {}
         sensors[device][subtopic] = msg.payload
-    except Exception, e:
+    except Exception as e:
         logging.error("Cannot extract sensor device/data: for %s: %s" % (str(msg.topic), str(e)))
 
 def on_control(mosq, userdata, msg):
@@ -578,7 +585,7 @@ def on_control(mosq, userdata, msg):
 
         if key == 'uptime':
             db[device]['human_uptime'] = uptime( db[device].get('uptime', 0) )
-    except Exception, e:
+    except Exception as e:
         logging.error("Cannot extract control device/data: for %s: %s" % (str(msg.topic), str(e)))
 
 def on_disconnect(mosq, userdata, rc):
@@ -617,7 +624,7 @@ if __name__ == '__main__':
     logging.debug("Attempting connection to MQTT broker at %s:%d..." % (MQTT_HOST, MQTT_PORT))
     try:
         mqttc.connect(MQTT_HOST, MQTT_PORT, 60)
-    except Exception, e:
+    except Exception as e:
         logging.error("Cannot connect to MQTT broker at %s:%d: %s" % (MQTT_HOST, MQTT_PORT, str(e)))
         sys.exit(2)
 

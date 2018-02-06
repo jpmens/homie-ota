@@ -22,7 +22,7 @@ import re
 import base64
 
 try:
-    import ConfigParser
+    import ConfigParser as configparser
 except ImportError:
     import configparser
 

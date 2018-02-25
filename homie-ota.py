@@ -347,10 +347,7 @@ def update():
             m.update(fwread)
             fwchecksum = m.hexdigest()
 
-            topic = "%s/%s/$implementation/ota/checksum" % (MQTT_SENSOR_PREFIX, device)
-            mqttc.publish(topic, payload=fwchecksum, qos=1, retain=False)
-
-            topic = "%s/%s/$implementation/ota/firmware" % (MQTT_SENSOR_PREFIX, device)
+            topic = "%s/%s/$implementation/ota/firmware/%s" % (MQTT_SENSOR_PREFIX, device, fwchecksum)
             mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
         except:
             pass

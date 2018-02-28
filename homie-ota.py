@@ -48,7 +48,10 @@ config.read(INIFILE)
 
 # Use ConfigParser to pick out the settings
 DEBUG = config.getboolean("global", "DEBUG")
-
+try:
+    DEBUG_SENSOR = config.getboolean("global", "DEBUG_SENSOR")
+except:
+    DEBUG_SENSOR = True
 OTA_HOST = config.get("global", "OTA_HOST")
 OTA_PORT = config.getint("global", "OTA_PORT")
 OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
@@ -326,15 +329,21 @@ def update():
     firmware = request.forms.get('firmware')
 
     if device == '-':
+        logging.error("OTA request is aborted due to no device chosen")
         return "OTA request aborted; no device chosen"
     if firmware == '-':
+        logging.error("OTA request is aborted due to no firmware chosen")
         return "OTA request aborted; no firmware chosen"
 
     # we are dealing with a homie 2.0 device
-    if device in db and 'homie' in db[device]:
+    if not device in db :
+        info = "Unable to find {} in device list".format(device)
+        logging.error(info)
+    elif 'homie' in db[device]:
         logging.debug("Homie 2.0 device")
         try:
             (fwname, fwversion) = firmware.split('@')
+            logging.debug("Firmware Name: {}, Firmware Version: {}".format(fwname, fwversion))
             for fwdata in scan_firmware().values():
                 if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
                     fwread = open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read()
@@ -342,24 +351,28 @@ def update():
                         fwpublish = base64.b64encode(fwread)
                     else:
                         fwpublish = bytearray(fwread)
-
-            m = hashlib.md5()
-            m.update(fwread)
-            fwchecksum = m.hexdigest()
-
-            topic = "%s/%s/$implementation/ota/firmware/%s" % (MQTT_SENSOR_PREFIX, device, fwchecksum)
-            mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
-        except:
-            pass
+                    m = hashlib.md5()
+                    m.update(fwread)
+                    fwchecksum = m.hexdigest()
+                    topic = "%s/%s/$implementation/ota/firmware/%s" % (MQTT_SENSOR_PREFIX, device, fwchecksum)
+                    mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
+                    logging.debug("Firware checksum: {}".format(fwchecksum))
+                    info = "OTA request sent to device %s for update to %s (OTA version: 2.0)" % (device, firmware)
+                    logging.info(info)
+                    break
+            else:
+                info = "Unable to find the firmware in folder"
+                logging.error(info)
+        except Exception as e:
+            info = str(e)
+            logging.error("Generic error: {}".format(str(e)))
     else:
         logging.debug("Homie 1.5 device")
         topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
         payload = generate_ota_payload(firmware)
         mqttc.publish(topic, payload=payload, qos=1, retain=False)
-
-    info = "OTA request sent to device %s for update to %s" % (device, firmware)
-    logging.info(info)
-
+        info = "OTA request sent to device %s for update to %s (OTA version: 1.5)" % (device, firmware)
+        logging.info(info)
     return info
 
 # Handle deleting a device from the mqtt broker, and the local db.
@@ -527,7 +540,7 @@ def on_sensor(mosq, userdata, msg):
         return
     elif msg.topic.endswith("$fw/name") or msg.topic.endswith("$fw/version"):
         logging.debug("FW message %s %s" % (msg.topic, str(msg.payload)))
-    else:
+    elif DEBUG_SENSOR:
         logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
 
     try:

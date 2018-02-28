@@ -525,6 +525,7 @@ def ota():
 def on_connect(mosq, userdata, flags, rc):
     mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
+    mqttc.subscribe("%s/+/$implementation/ota/#" % (MQTT_SENSOR_PREFIX), 0)
 
 # on_delete_message handles deleting the topic the messages was received on.
 def on_delete_message(mosq, userdata, msg):
@@ -578,6 +579,34 @@ def on_sensor(mosq, userdata, msg):
     except Exception as e:
         logging.error("Cannot extract sensor device/data: for %s: %s" % (str(msg.topic), str(e)))
 
+def on_ota_info(mosq, userdata, msg):
+    device = msg.topic.split('/')[1]
+    progress = re.compile("206\s(?P<current>[0-9]+)\/(?P<all>[0-9]+)")
+    reason = re.compile("[0-9]+\s(?P<reason>.*)")
+    if msg.topic.endswith('status'):
+        if msg.payload == "200":
+            logging.info("{}: Flash has been done correctly".format(device))
+        elif msg.payload == "202":
+            logging.info("{}: OTA request/checksum has been accepted".format(device))
+        elif msg.payload == "304":
+            logging.info("{}: The current firmware is already up-to-date".format(device))
+        elif msg.payload == "403":
+            logging.warning("{}: OTA is not enabled".format(device))
+        elif msg.payload.startswith("206"):
+            if DEBUG:
+                data = progress.match(msg.payload)
+                logging.debug("{}: OTA Flashing: {}/{}".format(device, data.group('current'), data.group('all')))
+        elif msg.payload.startswith("400"):
+            data = reason.match(msg.payload)
+            logging.error("{}: OTA is aborted due to error on server: {}".format(device, data.group('reason')))
+        elif msg.payload.startswith("500"):
+            data = reason.match(msg.payload)
+            logging.error("{}: OTA is aborted due to error on client: {}".format(device, data.group('reason')))
+        else:
+            logging.info("{}: Unknown status: {}".format(device, msg.payload))
+
+
+
 def on_control(mosq, userdata, msg):
     logging.debug("CONTROL %s %s" % (msg.topic, str(msg.payload)))
 
@@ -623,6 +652,7 @@ if __name__ == '__main__':
     mqttc.on_disconnect = on_disconnect
     mqttc.on_message = on_control
     mqttc.message_callback_add("%s/+/+/+" % (MQTT_SENSOR_PREFIX), on_sensor)
+    mqttc.message_callback_add("%s/+/$implementation/ota/#" % (MQTT_SENSOR_PREFIX), on_ota_info)
     # mqttc.on_log = on_log
 
     if MQTT_CAFILE:

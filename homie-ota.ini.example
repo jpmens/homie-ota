@@ -1,5 +1,6 @@
 [global]
 DEBUG			= True
+DEBUG_SENSOR		= True
 
 OTA_HOST		= 0.0.0.0
 OTA_PORT		= 9080

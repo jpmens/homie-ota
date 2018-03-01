@@ -48,7 +48,10 @@ config.read(INIFILE)
 
 # Use ConfigParser to pick out the settings
 DEBUG = config.getboolean("global", "DEBUG")
-
+try:
+    DEBUG_SENSOR = config.getboolean("global", "DEBUG_SENSOR")
+except:
+    DEBUG_SENSOR = True
 OTA_HOST = config.get("global", "OTA_HOST")
 OTA_PORT = config.getint("global", "OTA_PORT")
 OTA_ENDPOINT = config.get("global", "OTA_ENDPOINT")
@@ -326,15 +329,21 @@ def update():
     firmware = request.forms.get('firmware')
 
     if device == '-':
+        logging.error("OTA request is aborted due to no device chosen")
         return "OTA request aborted; no device chosen"
     if firmware == '-':
+        logging.error("OTA request is aborted due to no firmware chosen")
         return "OTA request aborted; no firmware chosen"
 
     # we are dealing with a homie 2.0 device
-    if device in db and 'homie' in db[device]:
+    if not device in db :
+        info = "Unable to find {} in device list".format(device)
+        logging.error(info)
+    elif 'homie' in db[device]:
         logging.debug("Homie 2.0 device")
         try:
             (fwname, fwversion) = firmware.split('@')
+            logging.debug("Firmware Name: {}, Firmware Version: {}".format(fwname, fwversion))
             for fwdata in scan_firmware().values():
                 if fwname == fwdata['firmware'] and fwversion == fwdata['version']:
                     fwread = open("%s/%s" % (OTA_FIRMWARE_ROOT, fwdata['filename']), "r").read()
@@ -342,24 +351,28 @@ def update():
                         fwpublish = base64.b64encode(fwread)
                     else:
                         fwpublish = bytearray(fwread)
-
-            m = hashlib.md5()
-            m.update(fwread)
-            fwchecksum = m.hexdigest()
-
-            topic = "%s/%s/$implementation/ota/firmware/%s" % (MQTT_SENSOR_PREFIX, device, fwchecksum)
-            mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
-        except:
-            pass
+                    m = hashlib.md5()
+                    m.update(fwread)
+                    fwchecksum = m.hexdigest()
+                    topic = "%s/%s/$implementation/ota/firmware/%s" % (MQTT_SENSOR_PREFIX, device, fwchecksum)
+                    mqttc.publish(topic, payload=fwpublish, qos=1, retain=False)
+                    logging.debug("Firware checksum: {}".format(fwchecksum))
+                    info = "OTA request sent to device %s for update to %s (OTA version: 2.0)" % (device, firmware)
+                    logging.info(info)
+                    break
+            else:
+                info = "Unable to find the firmware in folder"
+                logging.error(info)
+        except Exception as e:
+            info = str(e)
+            logging.error("Generic error: {}".format(str(e)))
     else:
         logging.debug("Homie 1.5 device")
         topic = "%s/%s/$ota" % (MQTT_SENSOR_PREFIX, device)
         payload = generate_ota_payload(firmware)
         mqttc.publish(topic, payload=payload, qos=1, retain=False)
-
-    info = "OTA request sent to device %s for update to %s" % (device, firmware)
-    logging.info(info)
-
+        info = "OTA request sent to device %s for update to %s (OTA version: 1.5)" % (device, firmware)
+        logging.info(info)
     return info
 
 # Handle deleting a device from the mqtt broker, and the local db.
@@ -512,6 +525,7 @@ def ota():
 def on_connect(mosq, userdata, flags, rc):
     mqttc.subscribe("%s/+/+" % (MQTT_SENSOR_PREFIX), 0)
     mqttc.subscribe("%s/+/+/+" % (MQTT_SENSOR_PREFIX), 0)
+    mqttc.subscribe("%s/+/$implementation/ota/#" % (MQTT_SENSOR_PREFIX), 0)
 
 # on_delete_message handles deleting the topic the messages was received on.
 def on_delete_message(mosq, userdata, msg):
@@ -527,7 +541,7 @@ def on_sensor(mosq, userdata, msg):
         return
     elif msg.topic.endswith("$fw/name") or msg.topic.endswith("$fw/version"):
         logging.debug("FW message %s %s" % (msg.topic, str(msg.payload)))
-    else:
+    elif DEBUG_SENSOR:
         logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
 
     try:
@@ -564,6 +578,34 @@ def on_sensor(mosq, userdata, msg):
         sensors[device][subtopic] = msg.payload
     except Exception as e:
         logging.error("Cannot extract sensor device/data: for %s: %s" % (str(msg.topic), str(e)))
+
+def on_ota_info(mosq, userdata, msg):
+    device = msg.topic.split('/')[1]
+    progress = re.compile("206\s(?P<current>[0-9]+)\/(?P<all>[0-9]+)")
+    reason = re.compile("[0-9]+\s(?P<reason>.*)")
+    if msg.topic.endswith('status'):
+        if msg.payload == "200":
+            logging.info("{}: Flash has been done correctly".format(device))
+        elif msg.payload == "202":
+            logging.info("{}: OTA request/checksum has been accepted".format(device))
+        elif msg.payload == "304":
+            logging.info("{}: The current firmware is already up-to-date".format(device))
+        elif msg.payload == "403":
+            logging.warning("{}: OTA is not enabled".format(device))
+        elif msg.payload.startswith("206"):
+            if DEBUG:
+                data = progress.match(msg.payload)
+                logging.debug("{}: OTA Flashing: {}/{}".format(device, data.group('current'), data.group('all')))
+        elif msg.payload.startswith("400"):
+            data = reason.match(msg.payload)
+            logging.error("{}: OTA is aborted due to error on server: {}".format(device, data.group('reason')))
+        elif msg.payload.startswith("500"):
+            data = reason.match(msg.payload)
+            logging.error("{}: OTA is aborted due to error on client: {}".format(device, data.group('reason')))
+        else:
+            logging.info("{}: Unknown status: {}".format(device, msg.payload))
+
+
 
 def on_control(mosq, userdata, msg):
     logging.debug("CONTROL %s %s" % (msg.topic, str(msg.payload)))
@@ -610,6 +652,7 @@ if __name__ == '__main__':
     mqttc.on_disconnect = on_disconnect
     mqttc.on_message = on_control
     mqttc.message_callback_add("%s/+/+/+" % (MQTT_SENSOR_PREFIX), on_sensor)
+    mqttc.message_callback_add("%s/+/$implementation/ota/#" % (MQTT_SENSOR_PREFIX), on_ota_info)
     # mqttc.on_log = on_log
 
     if MQTT_CAFILE:

@@ -64,5 +64,6 @@ We do this directly from the sketch directory into which the _exported binary_ w
 
 
   [Homie]: https://github.com/marvinroger/homie-esp8266
+  [Homie - Homie Convention 3.0 fork]: https://github.com/bodiroga/homie-esp8266
   [Bottle]: http://bottlepy.org/docs/dev/index.html
   [convention]: https://github.com/marvinroger/homie

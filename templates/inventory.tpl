@@ -20,15 +20,20 @@
 <table border="1">
 <thead>
 <tr>
-  <th>online</th><th>signal</th><th>device</th><th>ipaddress</th><th>uptime</th><th>fwname</th><th>fwversion</th><th>name</th>
+  <th>State</th><th>Signal</th><th>Device ID</th><th>IP Address</th><th>Uptime</th><th>Firmware name</th><th>Firmware Version</th><th>Device Name</th><th>Homie Version</th>
 </tr>
 </thead>
 %for device in sorted(db):
 <tr>
-   <td class="online"><img src="{{base_url}}/{{db[device].get('online', 'false')}}.png"
+%if db[device].get('homie', 0) >= 3.0:
+   <td class="online"><img src="{{base_url}}/{{db[device].get('state', 'false')}}.png"
+   		      alt="{{db[device].get('state', 'false')}}" /></td>
+%else:
+  <td class="online"><img src="{{base_url}}/{{db[device].get('online', 'false')}}.png"
    		      alt="{{db[device].get('online', 'false')}}" /></td>
+%end
 
-%if db[device].get('online', 'false') == 'true':
+%if db[device].get('state', 'false') == 'ready':
    <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
 %else:
    <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
@@ -36,14 +41,14 @@
    <td class="device"><a href="{{base_url}}/device/{{device}}">{{device}}</a></td>
 
 %for item in ['localip', 'human_uptime']:
-  %if item in db[device] and db[device].get('online', 'false') == 'true':
+  %if item in db[device] and db[device].get('state', 'false') == 'ready':
     <td>{{db[device][item]}}</td>
   %else:
     <td></td>
   %end
 %end
 
-%for item in ['fwname', 'fwversion', 'name']:
+%for item in ['fwname', 'fwversion', 'name', 'homie']:
   %if item in db[device]:
     <td>{{db[device][item]}}</td>
   %else:

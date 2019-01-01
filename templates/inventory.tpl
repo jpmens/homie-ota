@@ -25,10 +25,10 @@
 </thead>
 %for device in sorted(db):
 <tr>
-   <td class="online"><img src="{{base_url}}/{{db[device].get('online', 'false')}}.png"
-   		      alt="{{db[device].get('online', 'false')}}" /></td>
+   <td class="online"><img src="{{base_url}}/{{db[device].get('state', 'false')}}.png"
+   		      alt="{{db[device].get('state', 'false')}}" /></td>
 
-%if db[device].get('online', 'false') == 'true':
+%if db[device].get('state', 'false') == 'ready':
    <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
 %else:
    <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
@@ -36,7 +36,7 @@
    <td class="device"><a href="{{base_url}}/device/{{device}}">{{device}}</a></td>
 
 %for item in ['localip', 'human_uptime']:
-  %if item in db[device] and db[device].get('online', 'false') == 'true':
+  %if item in db[device] and db[device].get('state', 'false') == 'ready':
     <td>{{db[device][item]}}</td>
   %else:
     <td></td>

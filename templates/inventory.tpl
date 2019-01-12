@@ -25,23 +25,31 @@
 </thead>
 %for device in sorted(db):
 <tr>
-%if db[device].get('homie', 0) >= 3.0:
+%if db[device].get('homie', '1.0') >= '3.0':
    <td class="online"><img src="{{base_url}}/{{db[device].get('state', 'false')}}.png"
    		      alt="{{db[device].get('state', 'false')}}" /></td>
 %else:
   <td class="online"><img src="{{base_url}}/{{db[device].get('online', 'false')}}.png"
    		      alt="{{db[device].get('online', 'false')}}" /></td>
 %end
-
-%if db[device].get('state', 'false') == 'ready':
-   <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
+%if db[device].get('homie', '1.0') >= '3.0':
+   %if db[device].get('state', 'false') == 'ready':
+      <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
+   %else:
+      <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
+   %end
 %else:
-   <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
+   %if db[device].get('online', 'false') == 'true':
+      <td class="signal"><div class="pBar" data-from="0" data-to="{{ db[device].get('signal', 0) }}"></div></td>
+   %else:
+      <td class="signal"><div class="pBar" data-from="0" data-to="0"></div></td>
+   %end
 %end
-   <td class="device"><a href="{{base_url}}/device/{{device}}">{{device}}</a></td>
+
+<td class="device"><a href="{{base_url}}/device/{{device}}">{{device}}</a></td>
 
 %for item in ['localip', 'human_uptime']:
-  %if item in db[device] and db[device].get('state', 'false') == 'ready':
+  %if item in db[device] and (db[device].get('state', 'false') == 'ready' or db[device].get('online', 'false') == 'true'):
     <td>{{db[device][item]}}</td>
   %else:
     <td></td>

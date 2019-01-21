@@ -542,7 +542,7 @@ def on_sensor(mosq, userdata, msg):
     elif msg.topic.endswith("$fw/name") or msg.topic.endswith("$fw/version"):
         logging.debug("FW message %s %s" % (msg.topic, str(msg.payload)))
     elif DEBUG_SENSOR:
-        logging.debug("SENSOR %s %s" % (msg.topic, str(msg.payload)))
+        logging.debug("SENSOR %s %s" % (str(msg.topic), str(msg.payload)))
 
     try:
         t = str(msg.topic)
